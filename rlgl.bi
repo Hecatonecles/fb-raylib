@@ -60,14 +60,16 @@
 
 #ifndef RLGL_BI
 #define RLGL_BI
+'hack
 #inclib "raylib"
 
 #If Defined(RLGL_STANDALONE)
     #define RAYMATH_STANDALONE
     #define RAYMATH_HEADER_ONLY
-
-    #define Declare   '' We are building or using rlgl as a static library (or Linux shared library)
-
+'hack
+    #Ifndef RLAPI
+    #define RLAPI   '' We are building or using rlgl as a static library (or Linux shared library)
+	#EndIf
     #if defined(_WIN32)
         #if defined(BUILD_LIBTYPE_SHARED)
             #define Declare __declspec(dllexport)         '' We are building raylib as a Win32 shared library (.dll)
@@ -96,10 +98,10 @@
         #define RL_FREE(p)          free(p)
     #endif
 #else
-    #include "raylib.bi"         '' Required for: Model, Shader, Texture2D, TRACELOG()
+    #include Once "raylib.bi"         '' Required for: Model, Shader, Texture2D, TRACELOG()
 #endif
 
-#include "raymath.bi"            '' Required for: Vector3, Matrix
+#include once "raymath.bi"            '' Required for: Vector3, Matrix
 
 '' Security check in case no GRAPHICS_API_OPENGL_* defined
 #if Not Defined(GRAPHICS_API_OPENGL_11) andalso _
@@ -236,7 +238,7 @@ Enum FramebufferTexType
 End Enum
 
 #if defined(RLGL_STANDALONE)
-    #ifndef __cplusplus
+    #Ifndef __cplusplus
     '' Boolean type
     enum bool
     false, true
@@ -244,113 +246,113 @@ End Enum
     #endif
 
     '' Color type, RGBA (32bit)
-    typedef struct Color {
+    type Color 
         r as UByte
         g as UByte
         b as UByte
         a as UByte
-    } Color
+    End Type
 
     '' Rectangle type
-    typedef struct Rectangle {
+    Type Rectangl
         x as Single
         y as Single
-        w as singleidth
-        float height
-    } Rectangle
+        width as Single
+        height As single
+    End Type
 
     '' Texture type
     '' NOTE: Data stored in GPU memory
-    typedef struct Texture {
+    Type Texture 
         id as ULong        '' OpenGL texture id
         width as Long              '' Texture base width
         height as Long             '' Texture base height
-        int mipmaps            '' Mipmap levels, 1 by default
+        mipmaps As long            '' Mipmap levels, 1 by default
         format as Long             '' Data format (PixelFormat)
-    } Texture
+    End Type
 
     '' Texture2D type, same as Texture
-    typedef Texture Texture2D
+    Type Texture Texture2D
 
     '' TextureCubemap type, actually, same as Texture
-    typedef Texture TextureCubemap
+    Type Texture TextureCubemap
 
     '' Vertex data definning a mesh
-    typedef struct Mesh {
-        int vertexCount        '' number of vertices stored in arrays
-        int triangleCount      '' number of triangles stored (indexed or not)
-        float *vertices        '' vertex position (XYZ - 3 components per vertex) (shader-location = 0)
-        float *texcoords       '' vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
-        float *texcoords2      '' vertex second texture coordinates (useful for lightmaps) (shader-location = 5)
-        float *normals         '' vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
-        float *tangents        '' vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
-        unsigned char *colors  '' vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
-        unsigned short *indices'' vertex indices (in case vertex data comes indexed)
+    type Mesh
+        vertexCount As long        '' number of vertices stored in arrays
+        triangleCount As Long      '' number of triangles stored (indexed or not)
+        vertices As Single Ptr        '' vertex position (XYZ - 3 components per vertex) (shader-location = 0)
+        texcoords As Single Ptr       '' vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
+        texcoords2 As Single Ptr      '' vertex second texture coordinates (useful for lightmaps) (shader-location = 5)
+        normals As Single Ptr         '' vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
+        tangents As Single Ptr       '' vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
+        colors As Byte ptr '' vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+        indices As UShort ptr'' vertex indices (in case vertex data comes indexed)
 
         '' Animation vertex data
-        float *animVertices    '' Animated vertex positions (after bones transformations)
-        float *animNormals     '' Animated normals (after bones transformations)
-        int *boneIds           '' Vertex bone ids, up to 4 bones influence by vertex (skinning)
-        float *boneWeights     '' Vertex bone weight, up to 4 bones influence by vertex (skinning)
+        animVertices As Single ptr   '' Animated vertex positions (after bones transformations)
+        animNormals As Single ptr     '' Animated normals (after bones transformations)
+        boneIds As Long ptr           '' Vertex bone ids, up to 4 bones influence by vertex (skinning)
+        boneWeights As Single ptr     '' Vertex bone weight, up to 4 bones influence by vertex (skinning)
 
         '' OpenGL identifiers
         vaoId as ULong     '' OpenGL Vertex Array Object id
-        unsigned int *vboId    '' OpenGL Vertex Buffer Objects id (7 types of vertex data)
-    } Mesh
+        vboId As ULong ptr    '' OpenGL Vertex Buffer Objects id (7 types of vertex data)
+    End type
 
     '' Shader type (generic)
-    typedef struct Shader {
+    type Shader
         id as ULong        '' Shader program id
-        int *locs              '' Shader locations array (MAX_SHADER_LOCATIONS)
-    } Shader
+        locs As Long ptr              '' Shader locations array (MAX_SHADER_LOCATIONS)
+    End Type
 
     '' Material texture map
-    typedef struct MaterialMap {
+    Type MaterialMap
         texture as Texture2D      '' Material map texture
-        Color Color            '' Material map color
-        float value            '' Material map value
-    } MaterialMap
+        Color As Color            '' Material map color
+        value As single            '' Material map value
+    End Type
 
     '' Material type (generic)
-    typedef struct Material {
-        Shader shader          '' Material shader
-        MaterialMap *maps      '' Material maps (MAX_MATERIAL_MAPS)
-        float *params          '' Material generic parameters (if required)
-    } Material
+    Type Material
+        As Shader shader          '' Material shader
+        As MaterialMap Ptr maps      '' Material maps (MAX_MATERIAL_MAPS)
+        As Single Ptr params          '' Material generic parameters (if required)
+    End Type
 
     '' Camera type, defines a camera position/orientation in 3d space
-    typedef struct Camera {
-        Vector3 position       '' Camera position
-        Vector3 target         '' Camera target it looks-at
-        Vector3 up             '' Camera up vector (rotation over its axis)
-        float fovy             '' Camera field-of-view apperture in Y (degrees)
-    } Camera
+    type Camera
+        As Vector3 position       '' Camera position
+        As Vector3 target         '' Camera target it looks-at
+        As Vector3 up             '' Camera up vector (rotation over its axis)
+        As Single fovy             '' Camera field-of-view apperture in Y (degrees)
+    End Type
 
     '' Head-Mounted-Display device parameters
-    typedef struct VrDeviceInfo {
-        int hResolution                '' HMD horizontal resolution in pixels
-        int vResolution                '' HMD vertical resolution in pixels
-        float hScreenSize              '' HMD horizontal size in meters
-        float vScreenSize              '' HMD vertical size in meters
-        float vScreenCenter            '' HMD screen center in meters
-        float eyeToScreenDistance      '' HMD distance between eye and display in meters
-        float lensSeparationDistance   '' HMD lens separation distance in meters
-        float interpupillaryDistance   '' HMD IPD (distance between pupils) in meters
-        float lensDistortionValues[4]  '' HMD lens distortion constant parameters
-        float chromaAbCorrection[4]    '' HMD chromatic aberration correction parameters
-    } VrDeviceInfo
+    Type VrDeviceInfo
+        As long hResolution                '' HMD horizontal resolution in pixels
+        As Long vResolution                '' HMD vertical resolution in pixels
+        As Single hScreenSize              '' HMD horizontal size in meters
+        As Single vScreenSize              '' HMD vertical size in meters
+        As Single vScreenCenter            '' HMD screen center in meters
+        As Single eyeToScreenDistance      '' HMD distance between eye and display in meters
+        As Single lensSeparationDistance   '' HMD lens separation distance in meters
+        As Single interpupillaryDistance   '' HMD IPD (distance between pupils) in meters
+        As Single lensDistortionValues(0 To 3)  '' HMD lens distortion constant parameters
+        As single chromaAbCorrection(0 To 3)    '' HMD chromatic aberration correction parameters
+    End type
 
     '' VR Stereo rendering configuration for simulator
     typedef struct VrStereoConfig {
-        Shader distortionShader        '' VR stereo rendering distortion shader
-        Matrix eyesProjection[2]       '' VR stereo rendering eyes projection matrices
-        Matrix eyesViewOffset[2]       '' VR stereo rendering eyes view offset matrices
-        int eyeViewportRight[4]        '' VR stereo rendering right eye viewport [x, y, w, h]
-        int eyeViewportLeft[4]         '' VR stereo rendering left eye viewport [x, y, w, h]
-    } VrStereoConfig
+        As Shader distortionShader        '' VR stereo rendering distortion shader
+        As Matrix eyesProjection(0 To 1)       '' VR stereo rendering eyes projection matrices
+        As Matrix eyesViewOffset(0 To 1)       '' VR stereo rendering eyes view offset matrices
+        As Long eyeViewportRight(0 To 3)        '' VR stereo rendering right eye viewport [x, y, w, h]
+        As long eyeViewportLeft(0 To 3)         '' VR stereo rendering left eye viewport [x, y, w, h]
+    End Type
 
     '' TraceLog message types
-    typedef enum {
+    Enum TraceLogType
         LOG_ALL,
         LOG_TRACE,
         LOG_DEBUG,
@@ -359,10 +361,10 @@ End Enum
         LOG_ERROR,
         LOG_FATAL,
         LOG_NONE
-    } TraceLogType
+    End Enum
 
     '' Texture formats (support depends on OpenGL version)
-    typedef enum {
+    Enum PixelFormat
         UNCOMPRESSED_GRAYSCALE = 1,     '' 8 bit per pixel (no alpha)
         UNCOMPRESSED_GRAY_ALPHA,
         UNCOMPRESSED_R5G6B5,            '' 16 bpp
@@ -370,9 +372,9 @@ End Enum
         UNCOMPRESSED_R5G5B5A1,          '' 16 bpp (1 bit alpha)
         UNCOMPRESSED_R4G4B4A4,          '' 16 bpp (4 bit alpha)
         UNCOMPRESSED_R8G8B8A8,          '' 32 bpp
-        UNCOMPRESSED_R32,               '' 32 bpp (1 channel - float)
-        UNCOMPRESSED_R32G32B32,         '' 32*3 bpp (3 channels - float)
-        UNCOMPRESSED_R32G32B32A32,      '' 32*4 bpp (4 channels - float)
+        UNCOMPRESSED_R32,               '' 32 bpp (1 channel - single)
+        UNCOMPRESSED_R32G32B32,         '' 32*3 bpp (3 channels - single)
+        UNCOMPRESSED_R32G32B32A32,      '' 32*4 bpp (4 channels - single)
         COMPRESSED_DXT1_RGB,            '' 4 bpp (no alpha)
         COMPRESSED_DXT1_RGBA,           '' 4 bpp (1 bit alpha)
         COMPRESSED_DXT3_RGBA,           '' 8 bpp
@@ -384,32 +386,32 @@ End Enum
         COMPRESSED_PVRT_RGBA,           '' 4 bpp
         COMPRESSED_ASTC_4x4_RGBA,       '' 8 bpp
         COMPRESSED_ASTC_8x8_RGBA        '' 2 bpp
-    } PixelFormat
+    End Enum
 
     '' Texture parameters: filter mode
     '' NOTE 1: Filtering considers mipmaps if available in the texture
     '' NOTE 2: Filter is accordingly set for minification and magnification
-    typedef enum {
+    Enum TextureFilterMode
         FILTER_POINT = 0,               '' No filter, just pixel aproximation
         FILTER_BILINEAR,                '' Linear filtering
         FILTER_TRILINEAR,               '' Trilinear filtering (linear with mipmaps)
         FILTER_ANISOTROPIC_4X,          '' Anisotropic filtering 4x
         FILTER_ANISOTROPIC_8X,          '' Anisotropic filtering 8x
         FILTER_ANISOTROPIC_16X,         '' Anisotropic filtering 16x
-    } TextureFilterMode
+    End Enum
 
     '' Color blending modes (pre-defined)
-    typedef enum {
+    Enum BlendMode
         BLEND_ALPHA = 0,                '' Blend textures considering alpha (default)
         BLEND_ADDITIVE,                 '' Blend textures adding colors
         BLEND_MULTIPLIED,               '' Blend textures multiplying colors
         BLEND_ADD_COLORS,               '' Blend textures adding colors (alternative)
         BLEND_SUBTRACT_COLORS,          '' Blend textures subtracting colors (alternative)
         BLEND_CUSTOM                    '' Belnd textures using custom src/dst factors (use SetBlendModeCustom())
-    } BlendMode
+    End Enum
 
     '' Shader location point type
-    typedef enum {
+    Enum ShaderLocationIndex
         LOC_VERTEX_POSITION = 0,
         LOC_VERTEX_TEXCOORD01,
         LOC_VERTEX_TEXCOORD02,
@@ -435,10 +437,10 @@ End Enum
         LOC_MAP_IRRADIANCE,
         LOC_MAP_PREFILTER,
         LOC_MAP_BRDF
-    } ShaderLocationIndex
+    End Enum
 
     '' Shader uniform data types
-    typedef enum {
+    Enum ShaderUniformDataType
         UNIFORM_FLOAT = 0,
         UNIFORM_VEC2,
         UNIFORM_VEC3,
@@ -448,13 +450,13 @@ End Enum
         UNIFORM_IVEC3,
         UNIFORM_IVEC4,
         UNIFORM_SAMPLER2D
-    } ShaderUniformDataType
+    End Enum
 
     #define LOC_MAP_DIFFUSE      LOC_MAP_ALBEDO
     #define LOC_MAP_SPECULAR     LOC_MAP_METALNESS
 
     '' Material map type
-    typedef enum {
+    Enum MaterialMapType
         MAP_ALBEDO    = 0,       '' MAP_DIFFUSE
         MAP_METALNESS = 1,       '' MAP_SPECULAR
         MAP_NORMAL    = 2,
@@ -466,7 +468,7 @@ End Enum
         MAP_IRRADIANCE,          '' NOTE: Uses GL_TEXTURE_CUBE_MAP
         MAP_PREFILTER,           '' NOTE: Uses GL_TEXTURE_CUBE_MAP
         MAP_BRDF
-    } MaterialMapType
+    End enum
 
     #define MAP_DIFFUSE      MAP_ALBEDO
     #define MAP_SPECULAR     MAP_METALNESS
@@ -498,13 +500,13 @@ Declare Sub rlViewport(x as long, y as Long, width as long, height as long) '' S
 Declare Sub rlBegin(mode as long)                         '' Initialize drawing mode (how to organize vertex)
 Declare sub rlEnd()                               '' Finish vertex providing
 Declare Sub rlVertex2i(x as Long, y as Long)                  '' Define one vertex (position) - 2 int
-Declare Sub rlVertex2f(x as Single, y as Single)              '' Define one vertex (position) - 2 float
-Declare Sub rlVertex3f(x as Single, y as Single, z as Single)     '' Define one vertex (position) - 3 float
-Declare Sub rlTexCoord2f(x as Single, y as Single)            '' Define one vertex (texture coordinate) - 2 float
-Declare Sub rlNormal3f(x as Single, y as Single, z as Single)     '' Define one vertex (normal) - 3 float
+Declare Sub rlVertex2f(x as Single, y as Single)              '' Define one vertex (position) - 2 single
+Declare Sub rlVertex3f(x as Single, y as Single, z as Single)     '' Define one vertex (position) - 3 single
+Declare Sub rlTexCoord2f(x as Single, y as Single)            '' Define one vertex (texture coordinate) - 2 single
+Declare Sub rlNormal3f(x as Single, y as Single, z as Single)     '' Define one vertex (normal) - 3 single
 Declare Sub rlColor4ub(r as ubyte, g as UByte, b as UByte, a as UByte)  '' Define one vertex (color) - 4 byte
-Declare Sub rlColor3f(x as Single, y as Single, z as Single)          '' Define one vertex (color) - 3 float
-Declare Sub rlColor4f(x as Single, y as Single, z as Single, w as single) '' Define one vertex (color) - 4 float
+Declare Sub rlColor3f(x as Single, y as Single, z as Single)          '' Define one vertex (color) - 3 single
+Declare Sub rlColor4f(x as Single, y as Single, z as Single, w as single) '' Define one vertex (color) - 4 single
 
 ''------------------------------------------------------------------------------------
 '' Functions Declaration - OpenGL equivalent functions (common to 1.1, 3.3+, ES2)
@@ -617,7 +619,7 @@ Declare Texture2D GenTextureBRDF(Shader shader, size as Long)                  '
 Declare Sub BeginShaderMode(Shader shader)              '' Begin custom shader drawing
 Declare sub EndShaderMode()                         '' End custom shader drawing (use default shader)
 Declare Sub BeginBlendMode(mode as Long)                    '' Begin blending mode (alpha, additive, multiplied)
-Declare sub EndBlendMode()                          '' End blending mode (reset to default: alpha blending)
+Declare sub EndBlendMode()                          '' End blending mode (reset to case else: alpha blending)
 
 '' VR control functions
 Declare sub InitVrSimulator()                       '' Init VR simulator for selected device parameters
@@ -655,7 +657,7 @@ End Extern
 #else
     '' Check if config flags have been externally provided on compilation line
     #if Not Defined(EXTERNAL_CONFIG_FLAGS)
-        #include "config.h"             '' Defines module configuration flags
+        #include "config.bi"             '' Defines module configuration flags
     #endif
     #include "raymath.bi"                '' Required for: Vector3 and Matrix functions
 #endif
@@ -666,8 +668,8 @@ End Extern
 
 #if defined(GRAPHICS_API_OPENGL_11)
     #if defined(__APPLE__)
-        #include <OpenGL/gl.h>          '' OpenGL 1.1 library for OSX
-        #include <OpenGL/glext.h>
+        #include "OpenGL/gl.bi"          '' OpenGL 1.1 library for OSX
+        #include "OpenGL/glext.bi"
     #else
         '' APIENTRY for OpenGL function pointer declarations is required
         #ifndef APIENTRY
@@ -678,11 +680,11 @@ End Extern
             #endif
         #endif
         '' WINGDIAPI definition. Some Windows OpenGL headers need it
-        #if !defined(WINGDIAPI) && defined(_WIN32)
+        #if Not Defined(WINGDIAPI) andalso defined(_WIN32)
             #define WINGDIAPI __declspec(dllimport)
         #endif
 
-        #include <GL/gl.h>              '' OpenGL 1.1 library
+        #include "GL/gl.bi"              '' OpenGL 1.1 library
     #endif
 #endif
 
@@ -692,26 +694,26 @@ End Extern
 
 #if defined(GRAPHICS_API_OPENGL_33)
     #if defined(__APPLE__)
-        #include <OpenGL/gl3.h>         '' OpenGL 3 library for OSX
-        #include <OpenGL/gl3ext.h>      '' OpenGL 3 extensions library for OSX
+        #include "OpenGL/gl3.bi"         '' OpenGL 3 library for OSX
+        #include "OpenGL/gl3ext.bi"      '' OpenGL 3 extensions library for OSX
     #else
         #define GLAD_REALLOC RL_REALLOC
         #define GLAD_FREE RL_FREE
 
         #define GLAD_IMPLEMENTATION
         #if defined(RLGL_STANDALONE)
-            #include "glad.h"           '' GLAD extensions loading library, includes OpenGL headers
+            #include "glad.bi"           '' GLAD extensions loading library, includes OpenGL headers
         #else
-            #include "external/glad.h"  '' GLAD extensions loading library, includes OpenGL headers
+            #include "external/glad.bi"  '' GLAD extensions loading library, includes OpenGL headers
         #endif
     #endif
 #endif
 
 #if defined(GRAPHICS_API_OPENGL_ES2)
     #define GL_GLEXT_PROTOTYPES
-    #include <EGL/egl.h>                '' EGL library
-    #include <GLES2/gl2.h>              '' OpenGL ES 2.0 library
-    #include <GLES2/gl2ext.h>           '' OpenGL ES 2.0 extensions library
+    #include "EGL/egl.bi"                '' EGL library
+    #include "GLES2/gl2.bi"              '' OpenGL ES 2.0 library
+    #include "GLES2/gl2ext.bi"           '' OpenGL ES 2.0 extensions library
 #endif
 
 ''----------------------------------------------------------------------------------
@@ -803,132 +805,133 @@ End Extern
 ''----------------------------------------------------------------------------------
 
 '' Dynamic vertex buffers (position + texcoords + colors + indices arrays)
-typedef struct VertexBuffer {
-    int elementsCount          '' Number of elements in the buffer (QUADS)
+Type VertexBuffer 
+    As Long elementsCount          '' Number of elements in the buffer (QUADS)
 
-    int vCounter               '' Vertex position counter to process (and draw) from full buffer
-    int tcCounter              '' Vertex texcoord counter to process (and draw) from full buffer
-    int cCounter               '' Vertex color counter to process (and draw) from full buffer
+    As Long vCounter               '' Vertex position counter to process (and draw) from full buffer
+    As Long tcCounter              '' Vertex texcoord counter to process (and draw) from full buffer
+    As Long cCounter               '' Vertex color counter to process (and draw) from full buffer
 
-    float *vertices            '' Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
-    float *texcoords           '' Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
-    unsigned char *colors      '' Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
-#if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
-    unsigned int *indices      '' Vertex indices (in case vertex data comes indexed) (6 indices per quad)
+    As Single Ptr vertices            '' Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
+    As Single Ptr texcoords           '' Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
+    As UByte Ptr colors      '' Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+#if defined(GRAPHICS_API_OPENGL_11) OrElse defined(GRAPHICS_API_OPENGL_33)
+    As ULong Ptr indices      '' Vertex indices (in case vertex data comes indexed) (6 indices per quad)
 #elseif defined(GRAPHICS_API_OPENGL_ES2)
-    unsigned short *indices    '' Vertex indices (in case vertex data comes indexed) (6 indices per quad)
+    As UShort Ptr indices    '' Vertex indices (in case vertex data comes indexed) (6 indices per quad)
 #endif
     vaoId as ULong         '' OpenGL Vertex Array Object id
-    unsigned int vboId[4]      '' OpenGL Vertex Buffer Objects id (4 types of vertex data)
-} VertexBuffer
+    As ULong vboId(0 To 4)      '' OpenGL Vertex Buffer Objects id (4 types of vertex data)
+End Type
 
 '' Draw call type
 '' NOTE: Only texture changes register a new draw, other state-change-related elements are not
 '' used at this moment (vaoId, shaderId, matrices), raylib just forces a batch draw call if any
 '' of those state-change happens (this is done in core module)
-typedef struct DrawCall {
+type DrawCall
     mode as Long                   '' Drawing mode: LINES, TRIANGLES, QUADS
-    int vertexCount            '' Number of vertex of the draw
-    int vertexAlignment        '' Number of vertex required for index alignment (LINES, TRIANGLES)
+    As Long vertexCount            '' Number of vertex of the draw
+    As Long vertexAlignment        '' Number of vertex required for index alignment (LINES, TRIANGLES)
     ''vaoId as ulong       '' Vertex array id to be used on the draw -> Using RLGL.currentBatch->vertexBuffer.vaoId
     ''unsigned int shaderId    '' Shader id to be used on the draw -> Using RLGL.currentShader.id
-    unsigned int textureId     '' Texture id to be used on the draw -> Use to create new draw call if changes
+    As ULong textureId     '' Texture id to be used on the draw -> Use to create new draw call if changes
 
     ''Matrix projection        '' Projection matrix for this draw -> Using RLGL.projection
     ''Matrix modelview         '' Modelview matrix for this draw -> Using RLGL.modelview
-} DrawCall
+End Type
 
 '' RenderBatch type
-typedef struct RenderBatch {
+Type RenderBatch
     buffer as longsCount           '' Number of vertex buffers (multi-buffering support)
-    int currentBuffer          '' Current buffer tracking in case of multi-buffering
-    VertexBuffer *vertexBuffer '' Dynamic buffer(s) for vertex data
+    As Long currentBuffer          '' Current buffer tracking in case of multi-buffering
+    As VertexBuffer Ptr vertexBuffer '' Dynamic buffer(s) for vertex data
 
-    DrawCall *draws            '' Draw calls array, depends on textureId
-    int drawsCounter           '' Draw calls counter
-    float currentDepth         '' Current depth value for next draw
-} RenderBatch
+    As DrawCall ptr draws            '' Draw calls array, depends on textureId
+    As Long drawsCounter           '' Draw calls counter
+    As Single currentDepth         '' Current depth value for next draw
+End Type
 
 #if defined(SUPPORT_VR_SIMULATOR)
 '' VR Stereo rendering configuration for simulator
-typedef struct VrStereoConfig {
-    Shader distortionShader        '' VR stereo rendering distortion shader
-    Matrix eyesProjection[2]       '' VR stereo rendering eyes projection matrices
-    Matrix eyesViewOffset[2]       '' VR stereo rendering eyes view offset matrices
-    int eyeViewportRight[4]        '' VR stereo rendering right eye viewport [x, y, w, h]
-    int eyeViewportLeft[4]         '' VR stereo rendering left eye viewport [x, y, w, h]
-} VrStereoConfig
-#endif
+Type VrStereoConfig 
+    As Shader distortionShader        '' VR stereo rendering distortion shader
+    As Matrix eyesProjection(0 To 1)       '' VR stereo rendering eyes projection matrices
+    As Matrix eyesViewOffset(0 To 1)       '' VR stereo rendering eyes view offset matrices
+    As Long eyeViewportRight(0 To 3)        '' VR stereo rendering right eye viewport [x, y, w, h]
+    As Long eyeViewportLeft(0 To 3)         '' VR stereo rendering left eye viewport [x, y, w, h]
+End Type
+#EndIf
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-typedef struct rlglData {
-    RenderBatch *currentBatch              '' Current render batch
-    RenderBatch defaultBatch               '' Default internal render batch
+#if defined(GRAPHICS_API_OPENGL_33) orelse defined(GRAPHICS_API_OPENGL_ES2)
+'TODO
+type rlglData
+    As RenderBatch Ptr currentBatch              '' Current render batch
+    As RenderBatch defaultBatch               '' Default internal render batch
 
-    struct {
-        int currentMatrixMode              '' Current matrix mode
-        Matrix *currentMatrix              '' Current matrix pointer
-        Matrix modelview                   '' Default modelview matrix
-        Matrix projection                  '' Default projection matrix
-        transform as Matrix                   '' Transform matrix to be used with rlTranslate, rlRotate, rlScale
-        bool transformRequired             '' Require transform matrix application to current draw-call vertex (if required)
-        Matrix stack[MAX_MATRIX_STACK_SIZE]'' Matrix stack for push/pop
-        int stackCounter                   '' Matrix stack counter
+    Type State
+        As Long currentMatrixMode              '' Current matrix mode
+        As Matrix *currentMatrix              '' Current matrix pointer
+        As Matrix modelview                   '' Default modelview matrix
+        As Matrix projection                  '' Default projection matrix
+        As Matrix transform                   '' Transform matrix to be used with rlTranslate, rlRotate, rlScale
+        As boolean transformRequired             '' Require transform matrix application to current draw-call vertex (if required)
+        As Matrix stack(MAX_MATRIX_STACK_SIZE)'' Matrix stack for push/pop
+        As Long stackCounter                   '' Matrix stack counter
 
-        Texture2D shapesTexture            '' Texture used on shapes drawing (usually a white pixel)
-        Rectangle shapesTextureRec         '' Texture source rectangle used on shapes drawing
-        unsigned int defaultTextureId      '' Default texture used on shapes/poly drawing (required by shader)
-        unsigned int activeTextureId[4]    '' Active texture ids to be enabled on batch drawing (0 active by default)
-        unsigned int defaultVShaderId      '' Default vertex shader id (used by default shader program)
-        unsigned int defaultFShaderId      '' Default fragment shader Id (used by default shader program)
-        Shader defaultShader               '' Basic shader, support vertex color and diffuse texture
-        Shader currentShader               '' Shader to be used on rendering (by default, defaultShader)
+        As Texture2D shapesTexture            '' Texture used on shapes drawing (usually a white pixel)
+        As Rectangle shapesTextureRec         '' Texture source rectangle used on shapes drawing
+        As ULong defaultTextureId      '' Default texture used on shapes/poly drawing (required by shader)
+        As Ulong activeTextureId(4)    '' Active texture ids to be enabled on batch drawing (0 active by default)
+        As ULong defaultVShaderId      '' Default vertex shader id (used by default shader program)
+        As ULong defaultFShaderId      '' Default fragment shader Id (used by default shader program)
+        As Shader defaultShader               '' Basic shader, support vertex color and diffuse texture
+        As Shader currentShader               '' Shader to be used on rendering (by default, defaultShader)
 
-        int currentBlendMode               '' Blending mode active
-        int glBlendSrcFactor               '' Blending source factor
-        int glBlendDstFactor               '' Blending destination factor
-        int glBlendEquation                '' Blending equation
+        As Long currentBlendMode               '' Blending mode active
+        As Long glBlendSrcFactor               '' Blending source factor
+        As Long glBlendDstFactor               '' Blending destination factor
+        As Long glBlendEquation                '' Blending equation
 
-        int framebufferWidth               '' Default framebuffer width
-        int framebufferHeight              '' Default framebuffer height
+        As Long framebufferWidth               '' Default framebuffer width
+        As Long framebufferHeight              '' Default framebuffer height
 
-    } State
-    struct {
-        bool vao                           '' VAO support (OpenGL ES2 could not support VAO extension)
-        bool texNPOT                       '' NPOT textures full support
-        bool texDepth                      '' Depth textures supported
-        bool texFloat32                    '' float textures support (32 bit per channel)
-        bool texCompDXT                    '' DDS texture compression support
-        bool texCompETC1                   '' ETC1 texture compression support
-        bool texCompETC2                   '' ETC2/EAC texture compression support
-        bool texCompPVRT                   '' PVR texture compression support
-        bool texCompASTC                   '' ASTC texture compression support
-        bool texMirrorClamp                '' Clamp mirror wrap mode supported
-        bool texAnisoFilter                '' Anisotropic texture filtering support
-        bool debugMarker                   '' Debug marker support
+    End Type
+    Type ExtSupported 
+        As boolean vao                           '' VAO support (OpenGL ES2 could not support VAO extension)
+        As boolean texNPOT                       '' NPOT textures full support
+        As boolean texDepth                      '' Depth textures supported
+        As boolean texFloat32                    '' single textures support (32 bit per channel)
+        As boolean texCompDXT                    '' DDS texture compression support
+        As boolean texCompETC1                   '' ETC1 texture compression support
+        As boolean texCompETC2                   '' ETC2/EAC texture compression support
+        As boolean texCompPVRT                   '' PVR texture compression support
+        As boolean texCompASTC                   '' ASTC texture compression support
+        As boolean texMirrorClamp                '' Clamp mirror wrap mode supported
+        As boolean texAnisoFilter                '' Anisotropic texture filtering support
+        As boolean debugMarker                   '' Debug marker support
 
-        float maxAnisotropicLevel          '' Maximum anisotropy level supported (minimum is 2.0f)
-        int maxDepthBits                   '' Maximum bits for depth component
+        As Single maxAnisotropicLevel          '' Maximum anisotropy level supported (minimum is 2.0f)
+        As Long maxDepthBits                   '' Maximum bits for depth component
 
-    } ExtSupported     '' Extensions supported flags
+    End Type     '' Extensions supported flags
 #if defined(SUPPORT_VR_SIMULATOR)
-    struct {
-        VrStereoConfig config              '' VR stereo configuration for simulator
-        unsigned int stereoFboId           '' VR stereo rendering framebuffer id
-        unsigned int stereoTexId           '' VR stereo color texture (attached to framebuffer)
-        bool simulatorReady                '' VR simulator ready flag
-        bool stereoRender                  '' VR stereo rendering enabled/disabled flag
-    } Vr
+    Type Vr
+        As VrStereoConfig config              '' VR stereo configuration for simulator
+        As ULong stereoFboId           '' VR stereo rendering framebuffer id
+        As ULong stereoTexId           '' VR stereo color texture (attached to framebuffer)
+        As boolean simulatorReady                '' VR simulator ready flag
+        As boolean stereoRender                  '' VR stereo rendering enabled/disabled flag
+    End type
 #endif  '' SUPPORT_VR_SIMULATOR
-} rlglData
-#endif  '' GRAPHICS_API_OPENGL_33 || GRAPHICS_API_OPENGL_ES2
+End Type
+#endif  '' GRAPHICS_API_OPENGL_33 orelse GRAPHICS_API_OPENGL_ES2
 
 ''----------------------------------------------------------------------------------
 '' Global Variables Definition
 ''----------------------------------------------------------------------------------
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
 static rlglData RLGL = { 0 }
-#endif  '' GRAPHICS_API_OPENGL_33 || GRAPHICS_API_OPENGL_ES2
+#endif  '' GRAPHICS_API_OPENGL_33 orelse GRAPHICS_API_OPENGL_ES2
 
 #if defined(GRAPHICS_API_OPENGL_ES2)
 '' NOTE: VAO functionality is exposed through extensions (OES)
@@ -940,18 +943,18 @@ static PFNGLDELETEVERTEXARRAYSOESPROC glDeleteVertexArrays  '' Entry point point
 ''----------------------------------------------------------------------------------
 '' Module specific Functions Declaration
 ''----------------------------------------------------------------------------------
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-static unsigned int CompileShader(const char *shaderStr, int type)     '' Compile custom shader and return shader id
-static unsigned int LoadShaderProgram(unsigned int vShaderId, unsigned int fShaderId)  '' Load custom shader program
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+static Function CompileShader(shaderStr As Const ZString ptr, Type As long) As  ULong    '' Compile custom shader and return shader id
+static Function LoadShaderProgram(vShaderId As ulong, fShaderId As ulong) As ulong '' Load custom shader program
 
-static Shader LoadShaderDefault()                  '' Load default shader (just vertex positioning and texture coloring)
-static Sub SetShaderDefaultLocations(Shader *shader)  '' Bind default shader locations (attributes and uniforms)
+static Function LoadShaderDefault() As Shader                 '' Load default shader (just vertex positioning and texture coloring)
+static Sub SetShaderDefaultLocations(shader As Shader Ptr)  '' Bind default shader locations (attributes and uniforms)
 static sub UnloadShaderDefault()                  '' Unload default shader
 
-static RenderBatch LoadRenderBatch(int numBuffers, buffer as longElements) '' Load a render batch system
-static Sub UnloadRenderBatch(RenderBatch batch)       '' Unload render batch system
-static Sub DrawRenderBatch(RenderBatch *batch)        '' Draw render batch data (Update->Draw->Reset)
-static Sub SetRenderBatchActive(RenderBatch *batch)   '' Set the active render batch for rlgl
+static function LoadRenderBatch(numBuffers As Long, bufferElements as Long) As RenderBatch'' Load a render batch system
+static Sub UnloadRenderBatch(batch As RenderBatch)       '' Unload render batch system
+static Sub DrawRenderBatch(batch As RenderBatch Ptr )        '' Draw render batch data (Update->Draw->Reset)
+static Sub SetRenderBatchActive(batch As RenderBatch ptr)   '' Set the active render batch for rlgl
 static sub SetRenderBatchDefault()                '' Set default render batch for rlgl
 ''static bool CheckRenderBatchLimit(RenderBatch batch, int vCount)   '' Check render batch vertex buffer limits
 
@@ -959,14 +962,14 @@ static sub GenDrawCube()              '' Generate and draw cube
 static sub GenDrawQuad()              '' Generate and draw quad
 
 #if defined(SUPPORT_VR_SIMULATOR)
-static Sub SetStereoView(int eye, Matrix matProjection, Matrix matModelView)  '' Set internal projection and modelview matrix depending on eye
+static Sub SetStereoView(eye As Long,matProjection As Matrix , matModelView As  Matrix )  '' Set internal projection and modelview matrix depending on eye
 #endif
 
-#endif  '' GRAPHICS_API_OPENGL_33 || GRAPHICS_API_OPENGL_ES2
+#endif  '' GRAPHICS_API_OPENGL_33 orelse GRAPHICS_API_OPENGL_ES2
 
 #if defined(GRAPHICS_API_OPENGL_11)
-static int GenerateMipmaps(unsigned char *data, int baseWidth, int baseHeight)
-static Color *GenNextMipmap(Color *srcData, int srcWidth, int srcHeight)
+static Function GenerateMipmaps(Data As ZString ptr, baseWidth As long, baseHeight As long) As long
+static Function GenNextMipmap(srcData As Color ptr, srcWidth As long, srcHeight As long) As Color Ptr
 #endif
 
 ''----------------------------------------------------------------------------------
@@ -978,151 +981,149 @@ static Color *GenNextMipmap(Color *srcData, int srcWidth, int srcHeight)
 '' Fallback to OpenGL 1.1 function calls
 ''---------------------------------------
 Sub rlMatrixMode(mode as Long)
-{
-    switch (mode)
-    {
-        case RL_PROJECTION: glMatrixMode(GL_PROJECTION) break
-        case RL_MODELVIEW: glMatrixMode(GL_MODELVIEW) break
-        case RL_TEXTURE: glMatrixMode(GL_TEXTURE) break
-        default: break
-    }
-}
+    Select Case (mode)
+    
+    	case RL_PROJECTION: glMatrixMode(GL_PROJECTION)  
+    	case RL_MODELVIEW: glMatrixMode(GL_MODELVIEW)  
+    	case RL_TEXTURE: glMatrixMode(GL_TEXTURE)  
+    	Case else:  
+    End Select
+End Sub
 
 Sub rlFrustum(left as Double, right as Double, bottom as Double, top as Double, znear as double, zfar as Double)
-{
     glFrustum(left, right, bottom, top, znear, zfar)
-}
+End Sub
 
 Sub rlOrtho(left as Double, right as Double, bottom as Double, top as double, znear as Double, zfar as Double)
-{
     glOrtho(left, right, bottom, top, znear, zfar)
-}
+End Sub
 
-sub rlPushMatrix() { glPushMatrix() }
-sub rlPopMatrix() { glPopMatrix() }
-sub rlLoadIdentity() { glLoadIdentity() }
-Sub rlTranslatef(x as Single, y as Single, z as Single) { glTranslatef(x, y, z) }
-Sub rlRotatef(angleDeg as Single, x as Single, y as Single, z as Single) { glRotatef(angleDeg, x, y, z) }
-Sub rlScalef(x as Single, y as Single, z as Single) { glScalef(x, y, z) }
-Sub rlMultMatrixf(matf as single Ptr) { glMultMatrixf(matf) }
+sub rlPushMatrix() 
+	glPushMatrix() 
+End Sub
+sub rlPopMatrix() 
+	glPopMatrix()
+End Sub
+sub rlLoadIdentity() 
+	glLoadIdentity()
+End Sub
+Sub rlTranslatef(x as Single, y as Single, z as Single)
+	glTranslatef(x, y, z) 
+End Sub
+Sub rlRotatef(angleDeg as Single, x as Single, y as Single, z as Single) 
+	glRotatef(angleDeg, x, y, z)
+End Sub
+Sub rlScalef(x as Single, y as Single, z as Single) 
+	glScalef(x, y, z)
+End Sub
+Sub rlMultMatrixf(matf as single Ptr) 
+	glMultMatrixf(matf)
+End Sub
 
-#elseif defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#elseif defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
 
 '' Choose the current matrix to be transformed
 Sub rlMatrixMode(mode as Long)
-{
-    if (mode == RL_PROJECTION) RLGL.State.currentMatrix = &RLGL.State.projection
-    else if (mode == RL_MODELVIEW) RLGL.State.currentMatrix = &RLGL.State.modelview
+    if (mode = RL_PROJECTION) Then RLGL.State.currentMatrix = @RLGL.State.projection
+    elseif (mode = RL_MODELVIEW) Then RLGL.State.currentMatrix = @RLGL.State.modelview
     ''else if (mode == RL_TEXTURE) '' Not supported
-
+	 EndIf
+	 
     RLGL.State.currentMatrixMode = mode
-}
+End Sub
 
 '' Push the current matrix into RLGL.State.stack
 sub rlPushMatrix()
-{
-    if (RLGL.State.stackCounter >= MAX_MATRIX_STACK_SIZE) TRACELOG(LOG_ERROR, "RLGL: Matrix stack overflow (MAX_MATRIX_STACK_SIZE)")
+    if (RLGL.State.stackCounter >= MAX_MATRIX_STACK_SIZE) Then TRACELOG(LOG_ERROR, "RLGL: Matrix stack overflow (MAX_MATRIX_STACK_SIZE)")
 
-    if (RLGL.State.currentMatrixMode == RL_MODELVIEW)
-    {
+    if (RLGL.State.currentMatrixMode = RL_MODELVIEW) Then
         RLGL.State.transformRequired = TRUE
-        RLGL.State.currentMatrix = &RLGL.State.transform
-    }
+        RLGL.State.currentMatrix = @RLGL.State.transform
+    EndIf
 
     RLGL.State.stack[RLGL.State.stackCounter] = *RLGL.State.currentMatrix
-    RLGL.State.stackCounter++
-}
+    RLGL.State.stackCounter+=1
+End Sub
 
 '' Pop lattest inserted matrix from RLGL.State.stack
 sub rlPopMatrix()
-{
-    if (RLGL.State.stackCounter > 0)
-    {
-        Matrix mat = RLGL.State.stack[RLGL.State.stackCounter - 1]
+    if (RLGL.State.stackCounter > 0) then
+        Dim As Matrix mat = RLGL.State.stack[RLGL.State.stackCounter - 1]
         *RLGL.State.currentMatrix = mat
-        RLGL.State.stackCounter--
-    }
+        RLGL.State.stackCounter-=1
+    End If
 
-    if ((RLGL.State.stackCounter == 0) && (RLGL.State.currentMatrixMode == RL_MODELVIEW))
-    {
-        RLGL.State.currentMatrix = &RLGL.State.modelview
+    if ((RLGL.State.stackCounter = 0) andalso (RLGL.State.currentMatrixMode = RL_MODELVIEW)) Then
+        RLGL.State.currentMatrix = @RLGL.State.modelview
         RLGL.State.transformRequired = FALSE
-    }
-}
+    End If
+End Sub
 
 '' Reset current matrix to identity matrix
 sub rlLoadIdentity()
-{
     *RLGL.State.currentMatrix = MatrixIdentity()
-}
+End Sub
 
 '' Multiply the current matrix by a translation matrix
 Sub rlTranslatef(x as Single, y as Single, z as Single)
-{
-    Matrix matTranslation = MatrixTranslate(x, y, z)
+    Dim As Matrix matTranslation = MatrixTranslate(x, y, z)
 
     '' NOTE: We transpose matrix with multiplication order
     *RLGL.State.currentMatrix = MatrixMultiply(matTranslation, *RLGL.State.currentMatrix)
-}
+End Sub
 
 '' Multiply the current matrix by a rotation matrix
 Sub rlRotatef(angleDeg as Single, x as Single, y as Single, z as Single)
-{
-    Matrix matRotation = MatrixIdentity()
+    Dim As Matrix matRotation = MatrixIdentity()
 
-    Vector3 axis = (Vector3){ x, y, z }
+    Dim As Vector3 axis = Vector3( x, y, z )
     matRotation = MatrixRotate(Vector3Normalize(axis), angleDeg*DEG2RAD)
 
     '' NOTE: We transpose matrix with multiplication order
     *RLGL.State.currentMatrix = MatrixMultiply(matRotation, *RLGL.State.currentMatrix)
-}
+End Sub
 
 '' Multiply the current matrix by a scaling matrix
 Sub rlScalef(x as Single, y as Single, z as Single)
-{
-    Matrix matScale = MatrixScale(x, y, z)
+    Dim As Matrix matScale = MatrixScale(x, y, z)
 
     '' NOTE: We transpose matrix with multiplication order
     *RLGL.State.currentMatrix = MatrixMultiply(matScale, *RLGL.State.currentMatrix)
-}
+End Sub
 
 '' Multiply the current matrix by another matrix
 Sub rlMultMatrixf(matf as Single ptr)
-{
     '' Matrix creation from array
-    Matrix mat = { matf[0], matf[4], matf[8], matf[12],
-                   matf[1], matf[5], matf[9], matf[13],
-                   matf[2], matf[6], matf[10], matf[14],
-                   matf[3], matf[7], matf[11], matf[15] }
+    Dim As Matrix mat = Type<Matrix>( matf[0], matf[4], matf[8], matf[12], _
+                   matf[1], matf[5], matf[9], matf[13], _
+                   matf[2], matf[6], matf[10], matf[14], _
+                   matf[3], matf[7], matf[11], matf[15] )
 
     *RLGL.State.currentMatrix = MatrixMultiply(*RLGL.State.currentMatrix, mat)
-}
+End Sub
 
 '' Multiply the current matrix by a perspective matrix generated by parameters
 Sub rlFrustum(left as Double, right as Double, bottom as double, top as Double, znear as Double, zfar as Double)
-{
-    Matrix matPerps = MatrixFrustum(left, right, bottom, top, znear, zfar)
+    Dim As Matrix matPerps = MatrixFrustum(left, right, bottom, top, znear, zfar)
 
     *RLGL.State.currentMatrix = MatrixMultiply(*RLGL.State.currentMatrix, matPerps)
-}
+End Sub
 
 '' Multiply the current matrix by an orthographic matrix generated by parameters
 Sub rlOrtho(left as Double, right as double, bottom as Double, top as Double, znear as Double, zfar as Double)
-{
     '' NOTE: If left-right and top-botton values are equal it could create
     '' a division by zero on MatrixOrtho(), response to it is platform/compiler dependant
-    Matrix matOrtho = MatrixOrtho(left, right, bottom, top, znear, zfar)
+    Dim As Matrix matOrtho = MatrixOrtho(left, right, bottom, top, znear, zfar)
 
     *RLGL.State.currentMatrix = MatrixMultiply(*RLGL.State.currentMatrix, matOrtho)
-}
+End Sub
 
 #endif
 
 '' Set the viewport area (transformation from normalized device coordinates to window coordinates)
 Sub rlViewport(x as Long, y as Long, width as Long, height as Long)
-{
     glViewport(x, y, width, height)
-}
+End Sub
 
 ''----------------------------------------------------------------------------------
 '' Module Functions Definition - Vertex level operations
@@ -1132,99 +1133,109 @@ Sub rlViewport(x as Long, y as Long, width as Long, height as Long)
 '' Fallback to OpenGL 1.1 function calls
 ''---------------------------------------
 Sub rlBegin(mode as Long)
-{
-    switch (mode)
-    {
-        case RL_LINES: glBegin(GL_LINES) break
-        case RL_TRIANGLES: glBegin(GL_TRIANGLES) break
-        case RL_QUADS: glBegin(GL_QUADS) break
-        default: break
-    }
-}
+    Select Case (mode)
+        case RL_LINES: glBegin(GL_LINES)  
+        case RL_TRIANGLES: glBegin(GL_TRIANGLES)  
+        case RL_QUADS: glBegin(GL_QUADS)  
+        case else:  
+    End Select
+End Sub
 
-Sub rlEnd() { glEnd() }
-Sub rlVertex2i(x as Long, y as Long) { glVertex2i(x, y) }
-Sub rlVertex2f(x as Single, y as Single) { glVertex2f(x, y) }
-Sub rlVertex3f(x as Single, y as Single, z as Single) { glVertex3f(x, y, z) }
-Sub rlTexCoord2f(x as Single, y as Single) { glTexCoord2f(x, y) }
-Sub rlNormal3f(x as Single, y as Single, z as Single) { glNormal3f(x, y, z) }
-Sub rlColor4ub(r as UByte, g as UByte, b as UByte, a as ubyte) { glColor4ub(r, g, b, a) }
-Sub rlColor3f(x as Single, y as Single, z as Single) { glColor3f(x, y, z) }
-Sub rlColor4f(x as Single, y as Single, z as Single, w as Single) { glColor4f(x, y, z, w) }
+Sub rlEnd() 
+	glEnd()
+End Sub
+Sub rlVertex2i(x as Long, y as Long) 
+	glVertex2i(x, y)
+End Sub
+Sub rlVertex2f(x as Single, y as Single) 
+	glVertex2f(x, y)
+End Sub
+Sub rlVertex3f(x as Single, y as Single, z as Single) 
+	glVertex3f(x, y, z)
+End Sub
+Sub rlTexCoord2f(x as Single, y as Single) 
+	glTexCoord2f(x, y)
+End Sub
+Sub rlNormal3f(x as Single, y as Single, z as Single) 
+	glNormal3f(x, y, z)
+End Sub
+Sub rlColor4ub(r as UByte, g as UByte, b as UByte, a as ubyte) 
+	glColor4ub(r, g, b, a)
+End Sub
+Sub rlColor3f(x as Single, y as Single, z as Single) 
+	glColor3f(x, y, z)
+End Sub
+Sub rlColor4f(x as Single, y as Single, z as Single, w as Single) 
+	glColor4f(x, y, z, w)
+End Sub
 
-#ElseIf defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#ElseIf defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
 
 '' Initialize drawing mode (how to organize vertex)
 Sub rlBegin(mode as Long)
-{
     '' Draw mode can be RL_LINES, RL_TRIANGLES and RL_QUADS
     '' NOTE: In all three cases, vertex are accumulated over default internal vertex buffer
-    if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode != mode)
-    {
-        if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount > 0)
-        {
+    if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode <> mode) Then
+        if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount > 0) Then
             '' Make sure current RLGL.currentBatch->draws[i].vertexCount is aligned a multiple of 4,
             '' that way, following QUADS drawing will keep aligned with index processing
             '' It implies adding some extra alignment vertex at the end of the draw,
             '' those vertex are not processed but they are considered as an additional offset
             '' for the next set of vertex to be drawn
-            if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode == RL_LINES) RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment = ((RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount < 4)? RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount : RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount%4)
-            else if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode == RL_TRIANGLES) RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment = ((RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount < 4)? 1 : (4 - (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount%4)))
+            if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode = RL_LINES) Then
+            	RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment = IIf(((RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount < 4), RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount , RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount Mod 4))
+            elseif (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode = RL_TRIANGLES) 
+            	RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment = IIf(((RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount < 4), 1 , (4 - (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount Mod 4))))
 
             else RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment = 0
 
-            if (rlCheckBufferLimit(RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment)) DrawRenderBatch(RLGL.currentBatch)
-            else
-            {
+            if (rlCheckBufferLimit(RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment)) Then
+            	DrawRenderBatch(RLGL.currentBatch)
+            Else
                 RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter += RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment
                 RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter += RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment
                 RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter += RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment
 
-                RLGL.currentBatch->drawsCounter++
-            }
-        }
+                RLGL.currentBatch->drawsCounter+=1
+            EndIf
+        EndIf
 
         if (RLGL.currentBatch->drawsCounter >= DEFAULT_BATCH_DRAWCALLS) DrawRenderBatch(RLGL.currentBatch)
 
         RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].mode = mode
         RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount = 0
         RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].textureId = RLGL.State.defaultTextureId
-    }
-}
+    End If
+End Sub
 
 '' Finish vertex providing
 sub rlEnd()
-{
     '' Make sure vertexCount is the same for vertices, texcoords, colors and normals
     '' NOTE: In OpenGL 1.1, one glColor call can be made for all the subsequent glVertex calls
 
     '' Make sure colors count match vertex count
-    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter != RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter)
-    {
-        int addColors = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter - RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter
+    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter <> RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter) Then
+        Dim As long addColors = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter - RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter
 
-        for (int i = 0 i < addColors i++)
-        {
+        for i As long = 0 To addColors-1
             RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter] = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter - 4]
             RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter + 1] = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter - 3]
             RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter + 2] = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter - 2]
             RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter + 3] = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter - 1]
-            RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter++
-        }
-    }
+            RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter+=1
+        Next
+    EndIf
 
     '' Make sure texcoords count match vertex count
-    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter != RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter)
-    {
-        int addTexCoords = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter - RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter
+    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter <> RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter) Then
+        Dim As Long addTexCoords = RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter - RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter
 
-        for (int i = 0 i < addTexCoords i++)
-        {
+        for i As Long = 0 to addTexCoords-1
             RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter] = 0.0f
             RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter + 1] = 0.0f
-            RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter++
-        }
-    }
+            RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter+=1
+        Next
+    EndIf
 
     '' TODO: Make sure normals count match vertex count... if normals support is added in a future... :P
 
@@ -1235,87 +1246,82 @@ sub rlEnd()
 
     '' Verify internal buffers limits
     '' NOTE: This check is combined with usage of rlCheckBufferLimit()
-    if ((RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter) >= (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4 - 4))
-    {
+    if ((RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter) >= (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4 - 4)) Then
         '' WARNING: If we are between rlPushMatrix() and rlPopMatrix() and we need to force a DrawRenderBatch(),
         '' we need to call rlPopMatrix() before to recover *RLGL.State.currentMatrix (RLGL.State.modelview) for the next forced draw call!
         '' If we have multiple matrix pushed, it will require "RLGL.State.stackCounter" pops before launching the draw
-        for (int i = RLGL.State.stackCounter i >= 0 i--) rlPopMatrix()
-        DrawRenderBatch(RLGL.currentBatch)
-    }
-}
+        for i As Long = RLGL.State.stackCounter to 0 Step -1 
+        	rlPopMatrix()
+        Next
+        	DrawRenderBatch(RLGL.currentBatch)
+        
+    EndIf
+End Sub
 
 '' Define one vertex (position)
 '' NOTE: Vertex position data is the basic information required for drawing
 Sub rlVertex3f(x as Single, y as Single, z as Single)
-{
-    Vector3 vec = { x, y, z }
+    Dim As Vector3 vec = Vector3(x, y, z )
 
     '' Transform provided vector if required
-    if (RLGL.State.transformRequired) vec = Vector3Transform(vec, RLGL.State.transform)
+    if (RLGL.State.transformRequired) Then vec = Vector3Transform(vec, RLGL.State.transform)
 
     '' Verify that current vertex buffer elements limit has not been reached
-    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter < (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4))
-    {
+    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter < (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4)) then
         RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter] = vec.x
         RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter + 1] = vec.y
         RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vertices[3*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter + 2] = vec.z
-        RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter++
+        RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter+=1
 
-        RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount++
-    }
-    else TRACELOG(LOG_ERROR, "RLGL: Batch elements overflow")
-}
+        RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount+=1
+    else 
+    TRACELOG(LOG_ERROR, "RLGL: Batch elements overflow")
+	EndIf
+End Sub
 
 '' Define one vertex (position)
 Sub rlVertex2f(x as Single, y as Single)
-{
     rlVertex3f(x, y, RLGL.currentBatch->currentDepth)
-}
+End Sub
 
 '' Define one vertex (position)
 Sub rlVertex2i(x as Long, y as Long)
-{
-    rlVertex3f((float)x, (float)y, RLGL.currentBatch->currentDepth)
-}
+    rlVertex3f((single)x, (Single)y, RLGL.currentBatch->currentDepth)
+End Sub
 
 '' Define one vertex (texture coordinate)
 '' NOTE: Texture coordinates are limited to QUADS only
 Sub rlTexCoord2f(x as Single, y as Single)
-{
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter] = x
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].texcoords[2*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter + 1] = y
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter++
-}
+    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter+=1
+End Sub
 
 '' Define one vertex (normal)
 '' NOTE: Normals limited to TRIANGLES only?
 Sub rlNormal3f(x as Single, y as Single, z as Single)
-{
     '' TODO: Normals usage...
-}
+    glNormal3f(x,y,z)
+End Sub
 
 '' Define one vertex (color)
-Sub rlColor4ub(unsigned char x, unsigned char y, unsigned char z, unsigned char w)
-{
+Sub rlColor4ub(x as ubyte, y As UByte, z As UByte, w As UByte)
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter] = x
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter + 1] = y
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter + 2] = z
     RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].colors[4*RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter + 3] = w
-    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter++
-}
+    RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter+=1
+End sub
 
 '' Define one vertex (color)
-Sub rlColor4f(float r, float g, float b, float a)
-{
-    rlColor4ub((unsigned char)(r*255), (unsigned char)(g*255), (unsigned char)(b*255), (unsigned char)(a*255))
-}
+Sub rlColor4f(r As Single, g As Single, b As Single, a As single)
+    rlColor4ub(int(r*255), int(g*255), int(b*255), Int(a*255))
+End Sub
 
 '' Define one vertex (color)
 Sub rlColor3f(x as Single, y as Single, z as single)
-{
-    rlColor4ub((unsigned char)(x*255), (unsigned char)(y*255), (unsigned char)(z*255), 255)
-}
+    rlColor4ub(int(x*255), int(y*255), Int(z*255), 255)
+End Sub
 
 #endif
 
@@ -1325,17 +1331,14 @@ Sub rlColor3f(x as Single, y as Single, z as single)
 
 '' Enable texture usage
 Sub rlEnableTexture(id as ULong)
-{
-#if defined(GRAPHICS_API_OPENGL_11)
+#If defined(GRAPHICS_API_OPENGL_11)
     glEnable(GL_TEXTURE_2D)
     glBindTexture(GL_TEXTURE_2D, id)
 #endif
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].textureId != id)
-    {
-        if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount > 0)
-        {
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].textureId <> id) then
+        if (RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount > 0) Then
             '' Make sure current RLGL.currentBatch->draws[i].vertexCount is aligned a multiple of 4,
             '' that way, following QUADS drawing will keep aligned with index processing
             '' It implies adding some extra alignment vertex at the end of the draw,
@@ -1346,237 +1349,239 @@ Sub rlEnableTexture(id as ULong)
 
             else RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment = 0
 
-            if (rlCheckBufferLimit(RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment)) DrawRenderBatch(RLGL.currentBatch)
+            if (rlCheckBufferLimit(RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment)) Then
+            	DrawRenderBatch(RLGL.currentBatch)
             else
-            {
                 RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter += RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment
                 RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].cCounter += RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment
                 RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].tcCounter += RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexAlignment
 
-                RLGL.currentBatch->drawsCounter++
-            }
-        }
+                RLGL.currentBatch->drawsCounter+=1
+        		EndIf
+        End If
 
-        if (RLGL.currentBatch->drawsCounter >= DEFAULT_BATCH_DRAWCALLS) DrawRenderBatch(RLGL.currentBatch)
+        if (RLGL.currentBatch->drawsCounter >= DEFAULT_BATCH_DRAWCALLS) Then DrawRenderBatch(RLGL.currentBatch)
 
         RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].textureId = id
         RLGL.currentBatch->draws[RLGL.currentBatch->drawsCounter - 1].vertexCount = 0
-    }
+    Endif
 #endif
-}
+End Sub
 
 '' Disable texture usage
 sub rlDisableTexture()
-{
-#if defined(GRAPHICS_API_OPENGL_11)
+#If defined(GRAPHICS_API_OPENGL_11)
     glDisable(GL_TEXTURE_2D)
     glBindTexture(GL_TEXTURE_2D, 0)
 #else
     '' NOTE: If quads batch limit is reached,
     '' we force a draw call and next batch starts
-    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter >= (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4)) DrawRenderBatch(RLGL.currentBatch)
+    if (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter >= (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4)) Then DrawRenderBatch(RLGL.currentBatch)
 #endif
-}
+End Sub
 
 '' Set texture parameters (wrap mode/filter mode)
 Sub rlTextureParameters(id as ULong, param as Long, value as long)
-{
     glBindTexture(GL_TEXTURE_2D, id)
 
-    switch (param)
-    {
+    Select Case (param)
         case RL_TEXTURE_WRAP_S:
-        case RL_TEXTURE_WRAP_T:
-        {
-            if (value == RL_WRAP_MIRROR_CLAMP)
-            {
-#if !defined(GRAPHICS_API_OPENGL_11)
-                if (RLGL.ExtSupported.texMirrorClamp) glTexParameteri(GL_TEXTURE_2D, param, value)
-                else TRACELOG(LOG_WARNING, "GL: Clamp mirror wrap mode not supported (GL_MIRROR_CLAMP_EXT)")
-#endif
-            }
+    	case RL_TEXTURE_WRAP_T:
+            if (value = RL_WRAP_MIRROR_CLAMP) Then
+#If Not Defined(GRAPHICS_API_OPENGL_11)
+                if (RLGL.ExtSupported.texMirrorClamp) Then 
+                	glTexParameteri(GL_TEXTURE_2D, param, value)
+                else 
+                	TRACELOG(LOG_WARNING, "GL: Clamp mirror wrap mode not supported (GL_MIRROR_CLAMP_EXT)")
+                EndIf
+#EndIf
             else glTexParameteri(GL_TEXTURE_2D, param, value)
-
-        } break
-        case RL_TEXTURE_MAG_FILTER:
-        case RL_TEXTURE_MIN_FILTER: glTexParameteri(GL_TEXTURE_2D, param, value) break
+            EndIf
+    	case RL_TEXTURE_MAG_FILTER:
+    	case RL_TEXTURE_MIN_FILTER: 
+    		glTexParameteri(GL_TEXTURE_2D, param, value)  
         case RL_TEXTURE_ANISOTROPIC_FILTER:
-        {
-#if !defined(GRAPHICS_API_OPENGL_11)
-            if (value <= RLGL.ExtSupported.maxAnisotropicLevel) glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)value)
-            else if (RLGL.ExtSupported.maxAnisotropicLevel > 0.0f)
-            {
+#If Not Defined(GRAPHICS_API_OPENGL_11)
+            if (value <= RLGL.ExtSupported.maxAnisotropicLevel) Then
+            	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (Single)value)
+            ElseIf (RLGL.ExtSupported.maxAnisotropicLevel > 0.0f) Then
                 TRACELOG(LOG_WARNING, "GL: Maximum anisotropic filter level supported is %iX", id, RLGL.ExtSupported.maxAnisotropicLevel)
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)value)
-            }
-            else TRACELOG(LOG_WARNING, "GL: Anisotropic filtering not supported")
-#endif
-        } break
-        default: break
-    }
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (single)value)
+            else 
+            	TRACELOG(LOG_WARNING, "GL: Anisotropic filtering not supported")
+            EndIf
+#EndIf  
+        case Else:  
+    End Select
 
     glBindTexture(GL_TEXTURE_2D, 0)
-}
+End Sub
 
 '' Enable shader program usage
 Sub rlEnableShader(id as ULong)
-{
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2))
+#If (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2))
     glUseProgram(id)
 #endif
-}
+End sub
 
 '' Disable shader program usage
 sub rlDisableShader()
-{
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2))
+#If (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2))
     glUseProgram(0)
 #endif
-}
+End Sub
 
 '' Enable rendering to texture (fbo)
 Sub rlEnableFramebuffer(id as ULong)
-{
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)) && defined(SUPPORT_RENDER_TEXTURES_HINT)
+#If (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)) AndAlso defined(SUPPORT_RENDER_TEXTURES_HINT)
     glBindFramebuffer(GL_FRAMEBUFFER, id)
 #endif
-}
+End Sub
 
 '' Disable rendering to texture
 sub rlDisableFramebuffer()
-{
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)) && defined(SUPPORT_RENDER_TEXTURES_HINT)
+#If (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)) AndAlso defined(SUPPORT_RENDER_TEXTURES_HINT)
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 #endif
-}
+End Sub
 
 '' Enable depth test
-sub rlEnableDepthTest() { glEnable(GL_DEPTH_TEST) }
+sub rlEnableDepthTest() 
+	glEnable(GL_DEPTH_TEST) 
+End Sub
 
 '' Disable depth test
-sub rlDisableDepthTest() { glDisable(GL_DEPTH_TEST) }
+sub rlDisableDepthTest()
+	glDisable(GL_DEPTH_TEST)
+End Sub
 
 '' Enable depth write
-sub rlEnableDepthMask() { glDepthMask(GL_TRUE) }
+sub rlEnableDepthMask()
+	glDepthMask(GL_TRUE)
+End Sub
 
 '' Disable depth write
-sub rlDisableDepthMask() { glDepthMask(GL_FALSE) }
+sub rlDisableDepthMask()
+	glDepthMask(GL_FALSE)
+End Sub
 
 '' Enable backface culling
-sub rlEnableBackfaceCulling() { glEnable(GL_CULL_FACE) }
+sub rlEnableBackfaceCulling()
+	glEnable(GL_CULL_FACE)
+End Sub
 
 '' Disable backface culling
-sub rlDisableBackfaceCulling() { glDisable(GL_CULL_FACE) }
+sub rlDisableBackfaceCulling()
+	glDisable(GL_CULL_FACE)
+End Sub
 
 '' Enable scissor test
-Declare sub rlEnableScissorTest() { glEnable(GL_SCISSOR_TEST) }
+Sub rlEnableScissorTest()
+glEnable(GL_SCISSOR_TEST)
+End Sub
 
 '' Disable scissor test
-Declare sub rlDisableScissorTest() { glDisable(GL_SCISSOR_TEST) }
+Sub rlDisableScissorTest()
+	glDisable(GL_SCISSOR_TEST)
+End Sub
 
 '' Scissor test
-Declare Sub rlScissor(x as Long, y as Long, width as Long, height as Long) { glScissor(x, y, width, height) }
+Sub rlScissor(x as Long, y as Long, width as Long, height as Long)
+	glScissor(x, y, width, height)
+End Sub
 
 '' Enable wire mode
 sub rlEnableWireMode()
-{
-#if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
+#If defined(GRAPHICS_API_OPENGL_11) OrElse defined(GRAPHICS_API_OPENGL_33)
     '' NOTE: glPolygonMode() not available on OpenGL ES
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 #endif
-}
+End Sub
 
 '' Disable wire mode
 sub rlDisableWireMode()
-{
-#if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
+#If defined(GRAPHICS_API_OPENGL_11) OrElse defined(GRAPHICS_API_OPENGL_33)
     '' NOTE: glPolygonMode() not available on OpenGL ES
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 #endif
-}
+End Sub
 '' Set the line drawing width
-Sub rlSetLineWidth(w as singleidth)
-{
+Sub rlSetLineWidth(Width as Single)
     glLineWidth(width)
-}
+End Sub
 
 '' Get the line drawing width
-float rlGetLineWidth()
-{
+Function rlGetLineWidth() As Single
     w as singleidth = 0
-    glGetFloatv(GL_LINE_WIDTH, &width)
+    glGetFloatv(GL_LINE_WIDTH, @width)
     return Width
-}
+End Function
 
 '' Enable line aliasing
 sub rlEnableSmoothLines()
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_21) || defined(GRAPHICS_API_OPENGL_11)
+#If defined(GRAPHICS_API_OPENGL_33) orelse defined(GRAPHICS_API_OPENGL_21) OrElse defined(GRAPHICS_API_OPENGL_11)
     glEnable(GL_LINE_SMOOTH)
 #endif
-}
+End Sub
 
 '' Disable line aliasing
 sub rlDisableSmoothLines()
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_21) || defined(GRAPHICS_API_OPENGL_11)
+#if defined(GRAPHICS_API_OPENGL_33) orelse defined(GRAPHICS_API_OPENGL_21) OrElse defined(GRAPHICS_API_OPENGL_11)
     glDisable(GL_LINE_SMOOTH)
 #endif
-}
+End Sub
 
 '' Unload framebuffer from GPU memory
 '' NOTE: All attached textures/cubemaps/renderbuffers are also deleted
 Sub rlUnloadFramebuffer(id as ULong)
-{
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)) && defined(SUPPORT_RENDER_TEXTURES_HINT)
+#If (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)) AndAlso defined(SUPPORT_RENDER_TEXTURES_HINT)
 
     '' Query depth attachment to automatically delete texture/renderbuffer
-    int depthType = 0, depthId = 0
+    Dim As Long depthType = 0, depthId = 0
     glBindFramebuffer(GL_FRAMEBUFFER, id)   '' Bind framebuffer to query depth texture type
-    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &depthType)
-    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &depthId)
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, @depthType)
+    glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, @depthId)
 
-    unsigned int depthIdU = (unsigned int)depthId
-    if (depthType == GL_RENDERBUFFER) glDeleteRenderbuffers(1, &depthIdU)
-    else if (depthType == GL_RENDERBUFFER) glDeleteTextures(1, &depthIdU)
-
+    Dim As ulong depthIdU = depthId
+    if (depthType = GL_RENDERBUFFER) Then
+    	glDeleteRenderbuffers(1, @depthIdU)
+    ElseIf (depthType = GL_RENDERBUFFER) Then
+    	glDeleteTextures(1, @depthIdU)
+    EndIf
     '' NOTE: If a texture object is deleted while its image is attached to the *currently bound* framebuffer,
     '' the texture image is automatically detached from the currently bound framebuffer.
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
-    glDeleteFramebuffers(1, &id)
+    glDeleteFramebuffers(1, @id)
 
     TRACELOG(LOG_INFO, "FBO: [ID %i] Unloaded framebuffer from VRAM (GPU)", id)
 #endif
-}
+End Sub
 
 '' Clear color buffer with color
 Sub rlClearColor(r as ubyte, g as ubyte, b as ubyte, a as ubyte)
-{
     '' Color values clamp to 0.0f(0) and 1.0f(255)
-    float cr = (float)r/255
-    float cg = (float)g/255
-    float cb = (float)b/255
-    float ca = (float)a/255
+    single cr = (Single)r/255
+    single cg = (Single)g/255
+    single cb = (Single)b/255
+    single ca = (Single)a/255
 
     glClearColor(cr, cg, cb, ca)
-}
+End Sub
 
 '' Clear used screen buffers (color and depth)
 sub rlClearScreenBuffers()
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)     '' Clear used buffers: Color and Depth (Depth is used for 3D)
+    glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT)     '' Clear used buffers: Color and Depth (Depth is used for 3D)
     ''glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)     '' Stencil buffer not used...
-}
+End Sub
 
 '' Update GPU buffer with new data
-sub rlUpdateBuffer(bufferId as Long, Sub *data, dataSize as Long)
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+sub rlUpdateBuffer(bufferId as Long, Data As Any Ptr, dataSize as Long)
+#If defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     glBindBuffer(GL_ARRAY_BUFFER, bufferId)
     glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, data)
 #endif
-}
+End Sub
 
 ''----------------------------------------------------------------------------------
 '' Module Functions Definition - rlgl Functions
@@ -1584,7 +1589,6 @@ sub rlUpdateBuffer(bufferId as Long, Sub *data, dataSize as Long)
 
 '' Initialize rlgl: OpenGL extensions, default buffers/shaders/textures, OpenGL states
 Sub rlglInit(width as Long, height as Long)
-{
     '' Check OpenGL information and capabilities
     ''------------------------------------------------------------------------------
     '' Print current OpenGL and GLSL version
@@ -1618,9 +1622,9 @@ Sub rlglInit(width as Long, height as Long)
     '' Actually, when rlglInit() is called in InitWindow() in core.c,
     '' OpenGL context has already been created and required extensions loaded
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' Get supported extensions list
-    GLint numExt = 0
+    Dim As GLint numExt = 0
 
 #if defined(GRAPHICS_API_OPENGL_33) && !defined(GRAPHICS_API_OPENGL_21)
     '' NOTE: On OpenGL 3.3 VAO and NPOT are supported by default
@@ -1633,38 +1637,38 @@ Sub rlglInit(width as Long, height as Long)
 
     '' We get a list of available extensions and we check for some of them (compressed textures)
     '' NOTE: We don't need to check again supported extensions but we do (GLAD already dealt with that)
-    glGetIntegerv(GL_NUM_EXTENSIONS, &numExt)
+    glGetIntegerv(GL_NUM_EXTENSIONS, @numExt)
 
     '' Allocate numExt strings pointers
-    char **extList = RL_MALLOC(sizeof(char *)*numExt)
+    Dim As ZString Ptr Ptr extList = RL_MALLOC(sizeof(Byte ptr)*numExt)
 
     '' Get extensions strings
-    for (int i = 0 i < numExt i++) extList[i] = (char *)glGetStringi(GL_EXTENSIONS, i)
+    for i As long= 0 To numExt-1 
+    extList[i] = glGetStringi(GL_EXTENSIONS, i)
+    Next
 
 #endif
-#if defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_21)
+#if defined(GRAPHICS_API_OPENGL_ES2) OrElse defined(GRAPHICS_API_OPENGL_21)
     '' Allocate 512 strings pointers (2 KB)
-    const char **extList = RL_MALLOC(512*sizeof(const char *))
+    Dim As ZString Ptr Ptr extList = RL_MALLOC(512*sizeof(byte Ptr))
 
-    const char *extensions = (const char *)glGetString(GL_EXTENSIONS)  '' One big const string
+    Dim As ZString Ptr extensions = glGetString(GL_EXTENSIONS)  '' One big const string
 
     '' NOTE: We have to duplicate string because glGetString() returns a const string
-    int len = strlen(extensions) + 1
-    char *extensionsDup = (char *)RL_CALLOC(len, sizeof(char))
+    Dim As long len0 = strlen(extensions) + 1
+    Dim As ZString Ptr extensionsDup = RL_CALLOC(len0, sizeof(byte))
     strcpy(extensionsDup, extensions)
 
     extList[numExt] = extensionsDup
 
-    for (int i = 0 i < Len i++)
-    {
-        if (extensionsDup[i] == ' ')
-        {
-            extensionsDup[i] = '\0'
+    for i As Long = 0 To Len0-1
+        if (extensionsDup[i] = " ") then
+            extensionsDup[i] = !"\0"
 
-            numExt++
-            extList[numExt] = &extensionsDup[i + 1]
-        }
-    }
+            numExt+=1
+            extList[numExt] = @extensionsDup[i + 1]
+        EndIf
+    Next
 
     '' NOTE: Duplicated string (extensionsDup) must be deallocated
 #endif
@@ -1675,13 +1679,11 @@ Sub rlglInit(width as Long, height as Long)
     ''for (int i = 0 i < numExt i++)  TRACELOG(LOG_INFO, "Supported extension: %s", extList[i])
 
     '' Check required extensions
-    for (int i = 0 i < numExt i++)
-    {
-#if defined(GRAPHICS_API_OPENGL_ES2)
+    for i As Long = 0 to numExt-1
+#If defined(GRAPHICS_API_OPENGL_ES2)
         '' Check VAO support
         '' NOTE: Only check on OpenGL ES, OpenGL 3.3 has VAO support as core feature
-        if (strcmp(extList[i], (const char *)"GL_OES_vertex_array_object") == 0)
-        {
+        if (strcmp(extList[i], @"GL_OES_vertex_array_object") = 0) Then
             '' The extension is supported by our hardware and driver, try to get related functions pointers
             '' NOTE: emscripten does not support VAOs natively, it uses emulation and it reduces overall performance...
             glGenVertexArrays = (PFNGLGENVERTEXARRAYSOESPROC)eglGetProcAddress("glGenVertexArraysOES")
@@ -1689,89 +1691,97 @@ Sub rlglInit(width as Long, height as Long)
             glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSOESPROC)eglGetProcAddress("glDeleteVertexArraysOES")
             ''glIsVertexArray = (PFNGLISVERTEXARRAYOESPROC)eglGetProcAddress("glIsVertexArrayOES")     '' NOTE: Fails in WebGL, omitted
 
-            if ((glGenVertexArrays != NULL) && (glBindVertexArray != NULL) && (glDeleteVertexArrays != NULL)) RLGL.ExtSupported.vao = TRUE
-        }
+            if ((glGenVertexArrays <> NULL) andalso (glBindVertexArray <> NULL) andalso (glDeleteVertexArrays <> NULL)) Then RLGL.ExtSupported.vao = TRUE
+        EndIf
 
         '' Check NPOT textures support
         '' NOTE: Only check on OpenGL ES, OpenGL 3.3 has NPOT textures full support as core feature
-        if (strcmp(extList[i], (const char *)"GL_OES_texture_npot") == 0) RLGL.ExtSupported.texNPOT = TRUE
+        if (strcmp(extList[i], @"GL_OES_texture_npot") = 0) Then RLGL.ExtSupported.texNPOT = TRUE
 
-        '' Check texture float support
-        if (strcmp(extList[i], (const char *)"GL_OES_texture_float") == 0) RLGL.ExtSupported.texFloat32 = TRUE
+        '' Check texture single support
+        if (strcmp(extList[i], @"GL_OES_texture_float") = 0) RLGL.ExtSupported.texFloat32 = TRUE
 
         '' Check depth texture support
-        if ((strcmp(extList[i], (const char *)"GL_OES_depth_texture") == 0) ||
-            (strcmp(extList[i], (const char *)"GL_WEBGL_depth_texture") == 0)) RLGL.ExtSupported.texDepth = TRUE
+        if ((strcmp(extList[i], @"GL_OES_depth_texture") = 0) OrElse _
+            (strcmp(extList[i], @"GL_WEBGL_depth_texture") = 0)) Then RLGL.ExtSupported.texDepth = TRUE
 
-        if (strcmp(extList[i], (const char *)"GL_OES_depth24") == 0) RLGL.ExtSupported.maxDepthBits = 24
-        if (strcmp(extList[i], (const char *)"GL_OES_depth32") == 0) RLGL.ExtSupported.maxDepthBits = 32
+        if (strcmp(extList[i], @"GL_OES_depth24") = 0) Then RLGL.ExtSupported.maxDepthBits = 24
+        if (strcmp(extList[i], @"GL_OES_depth32") = 0) Then RLGL.ExtSupported.maxDepthBits = 32
 #endif
         '' DDS texture compression support
-        if ((strcmp(extList[i], (const char *)"GL_EXT_texture_compression_s3tc") == 0) ||
-            (strcmp(extList[i], (const char *)"GL_WEBGL_compressed_texture_s3tc") == 0) ||
-            (strcmp(extList[i], (const char *)"GL_WEBKIT_WEBGL_compressed_texture_s3tc") == 0)) RLGL.ExtSupported.texCompDXT = TRUE
+        if ((strcmp(extList[i], @"GL_EXT_texture_compression_s3tc") = 0) OrElse _
+            (strcmp(extList[i], @"GL_WEBGL_compressed_texture_s3tc") = 0) OrElse _
+            (strcmp(extList[i], @"GL_WEBKIT_WEBGL_compressed_texture_s3tc") = 0)) Then RLGL.ExtSupported.texCompDXT = TRUE
 
         '' ETC1 texture compression support
-        if ((strcmp(extList[i], (const char *)"GL_OES_compressed_ETC1_RGB8_texture") == 0) ||
-            (strcmp(extList[i], (const char *)"GL_WEBGL_compressed_texture_etc1") == 0)) RLGL.ExtSupported.texCompETC1 = TRUE
+        if ((strcmp(extList[i], @"GL_OES_compressed_ETC1_RGB8_texture") = 0) OrElse _
+            (strcmp(extList[i], @"GL_WEBGL_compressed_texture_etc1") = 0)) Then RLGL.ExtSupported.texCompETC1 = TRUE
 
         '' ETC2/EAC texture compression support
-        if (strcmp(extList[i], (const char *)"GL_ARB_ES3_compatibility") == 0) RLGL.ExtSupported.texCompETC2 = TRUE
+        if (strcmp(extList[i], @"GL_ARB_ES3_compatibility") = 0) Then RLGL.ExtSupported.texCompETC2 = TRUE
 
         '' PVR texture compression support
-        if (strcmp(extList[i], (const char *)"GL_IMG_texture_compression_pvrtc") == 0) RLGL.ExtSupported.texCompPVRT = TRUE
+        if (strcmp(extList[i], @"GL_IMG_texture_compression_pvrtc") = 0) Then RLGL.ExtSupported.texCompPVRT = TRUE
 
         '' ASTC texture compression support
-        if (strcmp(extList[i], (const char *)"GL_KHR_texture_compression_astc_hdr") == 0) RLGL.ExtSupported.texCompASTC = TRUE
+        if (strcmp(extList[i], @"GL_KHR_texture_compression_astc_hdr") = 0) Then RLGL.ExtSupported.texCompASTC = TRUE
 
         '' Anisotropic texture filter support
-        if (strcmp(extList[i], (const char *)"GL_EXT_texture_filter_anisotropic") == 0)
-        {
+        if (strcmp(extList[i], @"GL_EXT_texture_filter_anisotropic") = 0) Then
             RLGL.ExtSupported.texAnisoFilter = TRUE
-            glGetFloatv(&H84FF, &RLGL.ExtSupported.maxAnisotropicLevel)   '' GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
-        }
+            glGetFloatv(&H84FF, @RLGL.ExtSupported.maxAnisotropicLevel)   '' GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+        EndIf
 
         '' Clamp mirror wrap mode supported
-        if (strcmp(extList[i], (const char *)"GL_EXT_texture_mirror_clamp") == 0) RLGL.ExtSupported.texMirrorClamp = TRUE
+        if (strcmp(extList[i], @"GL_EXT_texture_mirror_clamp") = 0) Then RLGL.ExtSupported.texMirrorClamp = TRUE
 
         '' Debug marker support
-        if (strcmp(extList[i], (const char *)"GL_EXT_debug_marker") == 0) RLGL.ExtSupported.debugMarker = TRUE
-    }
+        if (strcmp(extList[i], @"GL_EXT_debug_marker") = 0) Then RLGL.ExtSupported.debugMarker = TRUE
+    Next
 
     '' Free extensions pointers
     RL_FREE(extList)
 
-#if defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_21)
+#if defined(GRAPHICS_API_OPENGL_ES2) OrElse defined(GRAPHICS_API_OPENGL_21)
     RL_FREE(extensionsDup)    '' Duplicated string must be deallocated
 #endif
 
 #if defined(GRAPHICS_API_OPENGL_ES2)
-    if (RLGL.ExtSupported.vao) TRACELOG(LOG_INFO, "GL: VAO extension detected, VAO functions initialized successfully")
-    else TRACELOG(LOG_WARNING, "GL: VAO extension not found, VAO usage not supported")
+    if (RLGL.ExtSupported.vao) Then 
+    	TRACELOG(LOG_INFO, "GL: VAO extension detected, VAO functions initialized successfully")
+    else 
+    	TRACELOG(LOG_WARNING, "GL: VAO extension not found, VAO usage not supported")
+    EndIf
 
-    if (RLGL.ExtSupported.texNPOT) TRACELOG(LOG_INFO, "GL: NPOT textures extension detected, full NPOT textures supported")
-    else TRACELOG(LOG_WARNING, "GL: NPOT textures extension not found, limited NPOT support (no-mipmaps, no-repeat)")
-#endif
+    if (RLGL.ExtSupported.texNPOT) Then
+    	TRACELOG(LOG_INFO, "GL: NPOT textures extension detected, full NPOT textures supported")
+    else 
+    	TRACELOG(LOG_WARNING, "GL: NPOT textures extension not found, limited NPOT support (no-mipmaps, no-repeat)")
+    EndIf
+#EndIf
 
-    if (RLGL.ExtSupported.texCompDXT) TRACELOG(LOG_INFO, "GL: DXT compressed textures supported")
-    if (RLGL.ExtSupported.texCompETC1) TRACELOG(LOG_INFO, "GL: ETC1 compressed textures supported")
-    if (RLGL.ExtSupported.texCompETC2) TRACELOG(LOG_INFO, "GL: ETC2/EAC compressed textures supported")
-    if (RLGL.ExtSupported.texCompPVRT) TRACELOG(LOG_INFO, "GL: PVRT compressed textures supported")
-    if (RLGL.ExtSupported.texCompASTC) TRACELOG(LOG_INFO, "GL: ASTC compressed textures supported")
+    if (RLGL.ExtSupported.texCompDXT) Then TRACELOG(LOG_INFO, "GL: DXT compressed textures supported")
+    if (RLGL.ExtSupported.texCompETC1) Then TRACELOG(LOG_INFO, "GL: ETC1 compressed textures supported")
+    if (RLGL.ExtSupported.texCompETC2) Then TRACELOG(LOG_INFO, "GL: ETC2/EAC compressed textures supported")
+    if (RLGL.ExtSupported.texCompPVRT) Then TRACELOG(LOG_INFO, "GL: PVRT compressed textures supported")
+    if (RLGL.ExtSupported.texCompASTC) Then TRACELOG(LOG_INFO, "GL: ASTC compressed textures supported")
 
-    if (RLGL.ExtSupported.texAnisoFilter) TRACELOG(LOG_INFO, "GL: Anisotropic textures filtering supported (max: %.0fX)", RLGL.ExtSupported.maxAnisotropicLevel)
-    if (RLGL.ExtSupported.texMirrorClamp) TRACELOG(LOG_INFO, "GL: Mirror clamp wrap texture mode supported")
+    if (RLGL.ExtSupported.texAnisoFilter) Then TRACELOG(LOG_INFO, "GL: Anisotropic textures filtering supported (max: %.0fX)", RLGL.ExtSupported.maxAnisotropicLevel)
+    if (RLGL.ExtSupported.texMirrorClamp) Then TRACELOG(LOG_INFO, "GL: Mirror clamp wrap texture mode supported")
 
-    if (RLGL.ExtSupported.debugMarker) TRACELOG(LOG_INFO, "GL: Debug Marker supported")
+    if (RLGL.ExtSupported.debugMarker) Then TRACELOG(LOG_INFO, "GL: Debug Marker supported")
 
     '' Initialize buffers, default shaders and default textures
     ''----------------------------------------------------------
     '' Init default white texture
-    unsigned char pixels[4] = { 255, 255, 255, 255 }   '' 1 pixel RGBA (4 bytes)
+    Dim As UByte pixels(0 To 3) = { 255, 255, 255, 255 }   '' 1 pixel RGBA (4 bytes)
     RLGL.State.defaultTextureId = rlLoadTexture(pixels, 1, 1, UNCOMPRESSED_R8G8B8A8, 1)
 
-    if (RLGL.State.defaultTextureId != 0) TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Default texture loaded successfully", RLGL.State.defaultTextureId)
-    else TRACELOG(LOG_WARNING, "TEXTURE: Failed to load default texture")
+    if (RLGL.State.defaultTextureId <> 0) Then
+    	TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Default texture loaded successfully", RLGL.State.defaultTextureId)
+    else 
+    	TRACELOG(LOG_WARNING, "TEXTURE: Failed to load default texture")
+    EndIf
 
     '' Init default Shader (customized for GL 3.3 and ES2)
     RLGL.State.defaultShader = LoadShaderDefault()
@@ -1779,18 +1789,20 @@ Sub rlglInit(width as Long, height as Long)
 
     '' Init default vertex arrays buffers
     RLGL.defaultBatch = LoadRenderBatch(DEFAULT_BATCH_BUFFERS, DEFAULT_BATCH_BUFFER_ELEMENTS)
-    RLGL.currentBatch = &RLGL.defaultBatch
+    RLGL.currentBatch = @RLGL.defaultBatch
 
     '' Init stack matrices (emulating OpenGL 1.1)
-    for (int i = 0 i < MAX_MATRIX_STACK_SIZE i++) RLGL.State.stack[i] = MatrixIdentity()
+    for i As Long = 0 To MAX_MATRIX_STACK_SIZE-1 
+    RLGL.State.stack[i] = MatrixIdentity()
+    Next
 
     '' Init internal matrices
     RLGL.State.transform = MatrixIdentity()
     RLGL.State.projection = MatrixIdentity()
     RLGL.State.modelview = MatrixIdentity()
-    RLGL.State.currentMatrix = &RLGL.State.modelview
+    RLGL.State.currentMatrix = @RLGL.State.modelview
 
-#endif      '' GRAPHICS_API_OPENGL_33 || GRAPHICS_API_OPENGL_ES2
+#endif      '' GRAPHICS_API_OPENGL_33 orelse GRAPHICS_API_OPENGL_ES2
 
     '' Initialize OpenGL default states
     ''----------------------------------------------------------
@@ -1819,14 +1831,14 @@ Sub rlglInit(width as Long, height as Long)
     glShadeModel(GL_SMOOTH)                                '' Smooth shading between vertex (vertex colors interpolation)
 #endif
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' Store screen size into global variables
     RLGL.State.framebufferWidth = Width
     RLGL.State.framebufferHeight = height
 
     '' Init texture and rectangle used on basic shapes drawing
     RLGL.State.shapesTexture = GetTextureDefault()
-    RLGL.State.shapesTextureRec = (Rectangle){ 0.0f, 0.0f, 1.0f, 1.0f }
+    RLGL.State.shapesTextureRec = Rectangle( 0.0f, 0.0f, 1.0f, 1.0f )
 
     TRACELOG(LOG_INFO, "RLGL: Default state initialized successfully")
 #endif
@@ -1834,73 +1846,70 @@ Sub rlglInit(width as Long, height as Long)
     '' Init state: Color/Depth buffers clear
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f)                   '' Set clear color (black)
     glClearDepth(1.0f)                                     '' Set clear depth value (default)
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)     '' Clear color and depth buffers (depth buffer required for 3D)
-}
+    glClear(GL_COLOR_BUFFER_BIT Or GL_DEPTH_BUFFER_BIT)     '' Clear color and depth buffers (depth buffer required for 3D)
+End Sub
 
 '' Vertex Buffer Object deinitialization (memory free)
 sub rlglClose()
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#If defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     UnloadRenderBatch(RLGL.defaultBatch)
 
     UnloadShaderDefault()          '' Unload default shader
-    glDeleteTextures(1, &RLGL.State.defaultTextureId) '' Unload default texture
+    glDeleteTextures(1, @RLGL.State.defaultTextureId) '' Unload default texture
 
     TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Unloaded default texture data from VRAM (GPU)", RLGL.State.defaultTextureId)
 #endif
-}
+End Sub
 
 '' Update and draw internal buffers
 sub rlglDraw()
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#If defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     DrawRenderBatch(RLGL.currentBatch)    '' NOTE: Stereo rendering is checked inside
 #endif
-}
+End Sub
 
 '' Check and log OpenGL error codes
-Sub rlCheckErrors() {
-#if defined(GRAPHICS_API_OPENGL_21) || defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    int check = 1
-    while (check) {
-        const GLenum err = glGetError()
-        switch (err) {
+Sub rlCheckErrors()
+#if defined(GRAPHICS_API_OPENGL_21) orelse defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    Dim As long check = 1
+    while (check)
+        Dim As GLenum err0 = glGetError()
+        Select Case (err0) 
             case GL_NO_ERROR:
                 check = 0
-                break
+                 
             case &H0500: '' GL_INVALID_ENUM:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_INVALID_ENUM")
-                break
+                 
             case &H0501: ''GL_INVALID_VALUE:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_INVALID_VALUE")
-                break
+                 
             case &H0502: ''GL_INVALID_OPERATION:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_INVALID_OPERATION")
-                break
+                 
             case &H0503: '' GL_STACK_OVERFLOW:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_STACK_OVERFLOW")
-                break
+                 
             case &H0504: '' GL_STACK_UNDERFLOW:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_STACK_UNDERFLOW")
-                break
+                 
             case &H0505: '' GL_OUT_OF_MEMORY:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_OUT_OF_MEMORY")
-                break
+                 
             case &H0506: '' GL_INVALID_FRAMEBUFFER_OPERATION:
                 TRACELOG(LOG_WARNING, "GL: Error detected: GL_INVALID_FRAMEBUFFER_OPERATION")
-                break
-            default:
-                TRACELOG(LOG_WARNING, "GL: Error detected: unknown error code %x", err)
-                break
-        }
-    }
+                 
+            case Else:
+                TRACELOG(LOG_WARNING, "GL: Error detected: unknown error code %x", err0)
+                 
+        End Select
+    Wend
 #endif
-}
+End Sub
 
 '' Returns current OpenGL version
-int rlGetVersion()
-{
-#if defined(GRAPHICS_API_OPENGL_11)
+Function rlGetVersion() As Long
+#If defined(GRAPHICS_API_OPENGL_11)
     return OPENGL_11
 #ElseIf defined(GRAPHICS_API_OPENGL_21)
     #if defined(__APPLE__)
@@ -1913,180 +1922,171 @@ int rlGetVersion()
 #ElseIf defined(GRAPHICS_API_OPENGL_ES2)
     return OPENGL_ES_20
 #endif
-}
+End Function
 
 '' Check internal buffer overflow for a given number of vertex
-bool rlCheckBufferLimit(int vCount)
-{
-    bool overflow = FALSE
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    if ((RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter + vCount) >= (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4)) overflow = TRUE
+function rlCheckBufferLimit(vCount As Long)As boolean
+    Dim As boolean overflow = FALSE
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    if ((RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].vCounter + vCount) >= (RLGL.currentBatch->vertexBuffer[RLGL.currentBatch->currentBuffer].elementsCount*4)) Then overflow = TRUE
 #endif
     return overflow
-}
+End Function
 
 '' Set debug marker
-Sub rlSetDebugMarker(const char *text)
-{
-#if defined(GRAPHICS_API_OPENGL_33)
+Sub rlSetDebugMarker(text As ZString Ptr)
+#If defined(GRAPHICS_API_OPENGL_33)
     if (RLGL.ExtSupported.debugMarker) glInsertEventMarkerEXT(0, text)
 #endif
-}
+End Sub
 
 '' Set blending mode factor and equation
 Sub rlSetBlendMode(glSrcFactor as Long, glDstFactor as Long, glEquationr As long)
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#If defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     RLGL.State.glBlendSrcFactor = glSrcFactor
     RLGL.State.glBlendDstFactor = glDstFactor
     RLGL.State.glBlendEquation = glEquation
 #endif
-}
+End Sub
 
 '' Load OpenGL extensions
 '' NOTE: External loader function could be passed as a pointer
-sub rlLoadExtensions(Sub *loader)
-{
-#if defined(GRAPHICS_API_OPENGL_33)
+'TODO
+sub rlLoadExtensions(loader As function)
+#If defined(GRAPHICS_API_OPENGL_33)
     '' NOTE: glad is generated and contains only required OpenGL 3.3 Core extensions (and lower versions)
-    #if !defined(__APPLE__)
-        if (!gladLoadGLLoader((GLADloadproc)loader)) TRACELOG(LOG_WARNING, "GLAD: Cannot load OpenGL extensions")
-        else TRACELOG(LOG_INFO, "GLAD: OpenGL extensions loaded successfully")
+    #if Not Defined(__APPLE__)
+        if (Not gladLoadGLLoader((GLADloadproc)loader)) Then
+        	TRACELOG(LOG_WARNING, "GLAD: Cannot load OpenGL extensions")
+        else 
+        	TRACELOG(LOG_INFO, "GLAD: OpenGL extensions loaded successfully")
+        EndIf
 
         #if defined(GRAPHICS_API_OPENGL_21)
-        if (GLAD_GL_VERSION_2_1) TRACELOG(LOG_INFO, "GL: OpenGL 2.1 profile supported")
+        if (GLAD_GL_VERSION_2_1) Then TRACELOG(LOG_INFO, "GL: OpenGL 2.1 profile supported")
         #ElseIf defined(GRAPHICS_API_OPENGL_33)
-        if (GLAD_GL_VERSION_3_3) TRACELOG(LOG_INFO, "GL: OpenGL 3.3 Core profile supported")
-        else TRACELOG(LOG_ERROR, "GL: OpenGL 3.3 Core profile not supported")
+        if (GLAD_GL_VERSION_3_3) Then 
+        	TRACELOG(LOG_INFO, "GL: OpenGL 3.3 Core profile supported")
+        else 
+        	TRACELOG(LOG_ERROR, "GL: OpenGL 3.3 Core profile not supported")
+        EndIf
         #endif
     #endif
 
     '' With GLAD, we can check if an extension is supported using the GLAD_GL_xxx booleans
     ''if (GLAD_GL_ARB_vertex_array_object) '' Use GL_ARB_vertex_array_object
 #endif
-}
+End Sub
 
 '' Convert image data to OpenGL texture (returns OpenGL valid Id)
-unsigned int rlLoadTexture(Sub *data, width as Long, height as Long, format as Long, mipmapCount as Long)
-{
+Function rlLoadTexture(Data As Any ptr, width as Long, height as Long, format as Long, mipmapCount as Long) As ULong
     glBindTexture(GL_TEXTURE_2D, 0)    '' Free any old binding
 
-    id as ULong = 0
+    Dim id as ULong = 0
 
     '' Check texture format support by OpenGL 1.1 (compressed textures not supported)
 #if defined(GRAPHICS_API_OPENGL_11)
-    if (format >= COMPRESSED_DXT1_RGB)
-    {
+    if (format >= COMPRESSED_DXT1_RGB) Then
         TRACELOG(LOG_WARNING, "GL: OpenGL 1.1 does not support GPU compressed texture formats")
         return id
-    }
+    EndIf
 #else
-    if ((!RLGL.ExtSupported.texCompDXT) && ((format == COMPRESSED_DXT1_RGB) || (format == COMPRESSED_DXT1_RGBA) ||
-        (format == COMPRESSED_DXT3_RGBA) || (format == COMPRESSED_DXT5_RGBA)))
-    {
+    if ((Not RLGL.ExtSupported.texCompDXT) andalso ((format = COMPRESSED_DXT1_RGB) orelse (format = COMPRESSED_DXT1_RGBA) OrElse _
+        (format = COMPRESSED_DXT3_RGBA) OrElse (format = COMPRESSED_DXT5_RGBA))) Then
         TRACELOG(LOG_WARNING, "GL: DXT compressed texture format not supported")
         return id
-    }
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    if ((!RLGL.ExtSupported.texCompETC1) && (format == COMPRESSED_ETC1_RGB))
-    {
+    End If
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    if ((Not RLGL.ExtSupported.texCompETC1) andalso (format = COMPRESSED_ETC1_RGB)) Then
         TRACELOG(LOG_WARNING, "GL: ETC1 compressed texture format not supported")
         return id
-    }
+    EndIf
 
-    if ((!RLGL.ExtSupported.texCompETC2) && ((format == COMPRESSED_ETC2_RGB) || (format == COMPRESSED_ETC2_EAC_RGBA)))
-    {
+    if ((Not RLGL.ExtSupported.texCompETC2) andalso ((format = COMPRESSED_ETC2_RGB) OrElse (format = COMPRESSED_ETC2_EAC_RGBA))) Then
         TRACELOG(LOG_WARNING, "GL: ETC2 compressed texture format not supported")
         return id
-    }
+    EndIf
 
-    if ((!RLGL.ExtSupported.texCompPVRT) && ((format == COMPRESSED_PVRT_RGB) || (format == COMPRESSED_PVRT_RGBA)))
-    {
+    if ((Not RLGL.ExtSupported.texCompPVRT) andalso ((format = COMPRESSED_PVRT_RGB) OrElse (format = COMPRESSED_PVRT_RGBA))) Then
         TRACELOG(LOG_WARNING, "GL: PVRT compressed texture format not supported")
         return id
-    }
+    EndIf
 
-    if ((!RLGL.ExtSupported.texCompASTC) && ((format == COMPRESSED_ASTC_4x4_RGBA) || (format == COMPRESSED_ASTC_8x8_RGBA)))
-    {
+    if ((Not RLGL.ExtSupported.texCompASTC) andalso ((format = COMPRESSED_ASTC_4x4_RGBA) OrElse (format = COMPRESSED_ASTC_8x8_RGBA))) Then
         TRACELOG(LOG_WARNING, "GL: ASTC compressed texture format not supported")
         return id
-    }
+    EndIf
 #endif
 #endif      '' GRAPHICS_API_OPENGL_11
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
 
-    glGenTextures(1, &id)              '' Generate texture id
+    glGenTextures(1, @id)              '' Generate texture id
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     ''glActiveTexture(GL_TEXTURE0)     '' If not defined, using GL_TEXTURE0 by default (shader texture)
 #endif
 
     glBindTexture(GL_TEXTURE_2D, id)
 
-    int mipWidth = Width
-    int mipHeight = height
-    int mipOffset = 0          '' Mipmap data offset
+    Dim As Long mipWidth = Width
+    Dim As Long mipHeight = height
+    Dim As Long mipOffset = 0          '' Mipmap data offset
 
     '' Load the different mipmap levels
-    for (int i = 0 i < mipmapCount i++)
-    {
-        unsigned int mipSize = GetPixelDataSize(mipWidth, mipHeight, format)
+    for i As Long = 0 To mipmapCount-1
+        Dim As ULong mipSize = GetPixelDataSize(mipWidth, mipHeight, format)
 
-        unsigned int glInternalFormat, glFormat, glType
-        rlGetGlTextureFormats(format, &glInternalFormat, &glFormat, &glType)
+        Dim As ULong glInternalFormat, glFormat, glType
+        rlGetGlTextureFormats(format, @glInternalFormat, @glFormat, @glType)
 
         TRACELOGD("TEXTURE: Load mipmap level %i (%i x %i), size: %i, offset: %i", i, mipWidth, mipHeight, mipSize, mipOffset)
 
-        if (glInternalFormat != -1)
-        {
-            if (format < COMPRESSED_DXT1_RGB) glTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, glFormat, glType, (unsigned char *)data + mipOffset)
+        if (glInternalFormat <> -1) Then
+            if (format < COMPRESSED_DXT1_RGB) Then
+            	glTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, glFormat, glType, Data + mipOffset)
         #if !defined(GRAPHICS_API_OPENGL_11)
-            else glCompressedTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, mipSize, (unsigned char *)data + mipOffset)
+            else 
+            	glCompressedTexImage2D(GL_TEXTURE_2D, i, glInternalFormat, mipWidth, mipHeight, 0, mipSize, Data + mipOffset)
         #endif
+            EndIf
 
         #if defined(GRAPHICS_API_OPENGL_33)
-            if (format == UNCOMPRESSED_GRAYSCALE)
-            {
-                GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ONE }
+            if (format = UNCOMPRESSED_GRAYSCALE) Then
+                Dim As GLint swizzleMask(0 To 3) = { GL_RED, GL_RED, GL_RED, GL_ONE }
                 glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask)
-            }
-            else if (format == UNCOMPRESSED_GRAY_ALPHA)
-            {
+            ElseIf (format = UNCOMPRESSED_GRAY_ALPHA) Then
             #if defined(GRAPHICS_API_OPENGL_21)
-                GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ALPHA }
+                Dim As GLint swizzleMask(0 To 3) = { GL_RED, GL_RED, GL_RED, GL_ALPHA }
             #ElseIf defined(GRAPHICS_API_OPENGL_33)
-                GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_GREEN }
+                Dim As GLint swizzleMask(0 To 3) = { GL_RED, GL_RED, GL_RED, GL_GREEN }
             #endif
                 glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask)
-            }
+            EndIf
         #endif
-        }
+        EndIf
 
         mipWidth /= 2
         mipHeight /= 2
         mipOffset += mipSize
 
         '' Security check for NPOT textures
-        if (mipWidth < 1) mipWidth = 1
-        if (mipHeight < 1) mipHeight = 1
-    }
+        if (mipWidth < 1) Then mipWidth = 1
+        if (mipHeight < 1) Then mipHeight = 1
+    Next
 
     '' Texture parameters configuration
     '' NOTE: glTexParameteri does NOT affect texture uploading, just the way it's used
 #if defined(GRAPHICS_API_OPENGL_ES2)
     '' NOTE: OpenGL ES 2.0 with no GL_OES_texture_npot support (i.e. WebGL) has limited NPOT support, so CLAMP_TO_EDGE must be used
-    if (RLGL.ExtSupported.texNPOT)
-    {
+    if (RLGL.ExtSupported.texNPOT) Then
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)       '' Set texture to repeat on x-axis
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)       '' Set texture to repeat on y-axis
-    }
-    else
-    {
+    Else
         '' NOTE: If using negative texture coordinates (LoadOBJ()), it does not work!
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)       '' Set texture to clamp on x-axis
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)       '' Set texture to clamp on y-axis
-    }
+    EndIf
 #else
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)       '' Set texture to repeat on x-axis
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)       '' Set texture to repeat on y-axis
@@ -2097,12 +2097,11 @@ unsigned int rlLoadTexture(Sub *data, width as Long, height as Long, format as L
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)  '' Alternative: GL_LINEAR
 
 #if defined(GRAPHICS_API_OPENGL_33)
-    if (mipmapCount > 1)
-    {
+    if (mipmapCount > 1) Then
         '' Activate Trilinear filtering if mipmaps are available
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-    }
+    EndIf
 #endif
 
     '' At this point we have the texture loaded in GPU and texture parameters configured
@@ -2112,35 +2111,40 @@ unsigned int rlLoadTexture(Sub *data, width as Long, height as Long, format as L
     '' Unbind current texture
     glBindTexture(GL_TEXTURE_2D, 0)
 
-    if (id > 0) TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Texture created successfully (%ix%i - %i mipmaps)", id, width, height, mipmapCount)
-    else TRACELOG(LOG_WARNING, "TEXTURE: Failed to load texture")
+    if (id > 0) Then
+    	TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Texture created successfully (%ix%i - %i mipmaps)", id, width, height, mipmapCount)
+    else 
+    	TRACELOG(LOG_WARNING, "TEXTURE: Failed to load texture")
+    EndIf
 
     return id
-}
+End Function
 
 '' Load depth texture/renderbuffer (to be attached to fbo)
 '' WARNING: OpenGL ES 2.0 requires GL_OES_depth_texture/WEBGL_depth_texture extensions
-unsigned int rlLoadTextureDepth(width as Long, height as Long, useRenderBuffer as boolean)
-{
-    id as ULong = 0
+Function rlLoadTextureDepth(width as Long, height as Long, useRenderBuffer as boolean) As ULong
+    Dim id as ULong = 0
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' In case depth textures not supported, we force renderbuffer usage
-    if (!RLGL.ExtSupported.texDepth) useRenderBuffer = TRUE
+    if (Not RLGL.ExtSupported.texDepth) Then useRenderBuffer = TRUE
 
     '' NOTE: We let the implementation to choose the best bit-depth
     '' Possible formats: GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT32 and GL_DEPTH_COMPONENT32F
-    unsigned int glInternalFormat = GL_DEPTH_COMPONENT
+    Dim As ULong glInternalFormat = GL_DEPTH_COMPONENT
 
 #if defined(GRAPHICS_API_OPENGL_ES2)
-    if (RLGL.ExtSupported.maxDepthBits == 32) glInternalFormat = GL_DEPTH_COMPONENT32_OES
-    else if (RLGL.ExtSupported.maxDepthBits == 24) glInternalFormat = GL_DEPTH_COMPONENT24_OES
-    else glInternalFormat = GL_DEPTH_COMPONENT16
-#endif
+    if (RLGL.ExtSupported.maxDepthBits = 32) Then 
+    	glInternalFormat = GL_DEPTH_COMPONENT32_OES
+    ElseIf (RLGL.ExtSupported.maxDepthBits = 24) Then 
+    	glInternalFormat = GL_DEPTH_COMPONENT24_OES
+    else 
+    	glInternalFormat = GL_DEPTH_COMPONENT16
+    EndIf
+#EndIf
 
-    if (!useRenderBuffer && RLGL.ExtSupported.texDepth)
-    {
-        glGenTextures(1, &id)
+    if (Not useRenderBuffer andalso RLGL.ExtSupported.texDepth) Then
+        glGenTextures(1, @id)
         glBindTexture(GL_TEXTURE_2D, id)
         glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL)
 
@@ -2152,84 +2156,80 @@ unsigned int rlLoadTextureDepth(width as Long, height as Long, useRenderBuffer a
         glBindTexture(GL_TEXTURE_2D, 0)
 
         TRACELOG(LOG_INFO, "TEXTURE: Depth texture loaded successfully")
-    }
-    else
-    {
+    Else
         '' Create the renderbuffer that will serve as the depth attachment for the framebuffer
         '' NOTE: A renderbuffer is simpler than a texture and could offer better performance on embedded devices
-        glGenRenderbuffers(1, &id)
+        glGenRenderbuffers(1, @id)
         glBindRenderbuffer(GL_RENDERBUFFER, id)
         glRenderbufferStorage(GL_RENDERBUFFER, glInternalFormat, width, height)
 
         glBindRenderbuffer(GL_RENDERBUFFER, 0)
 
         TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Depth renderbuffer loaded successfully (%i bits)", id, (RLGL.ExtSupported.maxDepthBits >= 24)? RLGL.ExtSupported.maxDepthBits : 16)
-    }
+    EndIf
 #endif
 
     return id
-}
+End Function
 
 '' Load texture cubemap
 '' NOTE: Cubemap data is expected to be 6 images in a single data array (one after the other),
 '' expected the following convention: +X, -X, +Y, -Y, +Z, -Z
-unsigned int rlLoadTextureCubemap(Sub *data, size as Long, format as Long)
-{
-    id as ULong = 0
+Function rlLoadTextureCubemap(Data As Any ptr, size as Long, format as Long) As ULong
+    Dim id as ULong = 0
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    unsigned dataSize as Long = GetPixelDataSize(size, size, format)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    Dim dataSize as ULong = GetPixelDataSize(size, size, format)
 
-    glGenTextures(1, &id)
+    glGenTextures(1, @id)
     glBindTexture(GL_TEXTURE_CUBE_MAP, id)
 
-    unsigned int glInternalFormat, glFormat, glType
-    rlGetGlTextureFormats(format, &glInternalFormat, &glFormat, &glType)
+    Dim As ULong glInternalFormat, glFormat, glType
+    rlGetGlTextureFormats(format, @glInternalFormat, @glFormat, @glType)
 
-    if (glInternalFormat != -1)
-    {
+    if (glInternalFormat <> -1) Then
         '' Load cubemap faces
-        for (unsigned int i = 0 i < 6 i++)
-        {
-            if (data == NULL)
-            {
-                if (format < COMPRESSED_DXT1_RGB)
-                {
-                    if (format == UNCOMPRESSED_R32G32B32)
-                    {
+        for i As ULong = 0 To 5
+            if (data = NULL) Then
+                if (format < COMPRESSED_DXT1_RGB) then
+                    if (format = UNCOMPRESSED_R32G32B32) Then
                         '' Instead of using a sized internal texture format (GL_RGB16F, GL_RGB32F), we let the driver to choose the better format for us (GL_RGB)
-                        if (RLGL.ExtSupported.texFloat32) glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, size, size, 0, GL_RGB, GL_FLOAT, NULL)
-                        else TRACELOG(LOG_WARNING, "TEXTURES: Cubemap requested format not supported")
-                    }
-                    else if ((format == UNCOMPRESSED_R32) || (format == UNCOMPRESSED_R32G32B32A32)) TRACELOG(LOG_WARNING, "TEXTURES: Cubemap requested format not supported")
-                    else glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0, glFormat, glType, NULL)
-                }
-                else TRACELOG(LOG_WARNING, "TEXTURES: Empty cubemap creation does not support compressed format")
-            }
-            else
-            {
-                if (format < COMPRESSED_DXT1_RGB) glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0, glFormat, glType, (unsigned char *)data + i*dataSize)
-                else glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0, dataSize, (unsigned char *)data + i*dataSize)
-            }
+                        if (RLGL.ExtSupported.texFloat32) Then 
+                        	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, size, size, 0, GL_RGB, GL_FLOAT, NULL)
+                        else 
+                        	TRACELOG(LOG_WARNING, "TEXTURES: Cubemap requested format not supported")
+                        EndIf
+                    ElseIf ((format = UNCOMPRESSED_R32) OrElse (format = UNCOMPRESSED_R32G32B32A32)) Then 
+                    	TRACELOG(LOG_WARNING, "TEXTURES: Cubemap requested format not supported")
+                    Else 
+                    	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0, glFormat, glType, NULL)
+                    EndIf
+                Else 
+                	TRACELOG(LOG_WARNING, "TEXTURES: Empty cubemap creation does not support compressed format")
+                EndIf
+            Else
+                if (format < COMPRESSED_DXT1_RGB) Then
+                	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0, glFormat, glType, data + i*dataSize)
+                else 
+                	glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, glInternalFormat, size, size, 0, dataSize, Data + i*dataSize)
+                EndIf
+            EndIf
 
 #if defined(GRAPHICS_API_OPENGL_33)
-            if (format == UNCOMPRESSED_GRAYSCALE)
-            {
-                GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ONE }
+            if (format = UNCOMPRESSED_GRAYSCALE) Then
+                Dim As GLint swizzleMask(0 To 3) = { GL_RED, GL_RED, GL_RED, GL_ONE }
                 glTexParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask)
-            }
-            else if (format == UNCOMPRESSED_GRAY_ALPHA)
-            {
-#if defined(GRAPHICS_API_OPENGL_21)
-                GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_ALPHA }
+            ElseIf (format = UNCOMPRESSED_GRAY_ALPHA) Then
+#If defined(GRAPHICS_API_OPENGL_21)
+                Dim As GLint swizzleMask(0 To 3) = { GL_RED, GL_RED, GL_RED, GL_ALPHA }
 #ElseIf defined(GRAPHICS_API_OPENGL_33)
-                GLint swizzleMask[] = { GL_RED, GL_RED, GL_RED, GL_GREEN }
+                Dim As GLint swizzleMask(0 To 3) = { GL_RED, GL_RED, GL_RED, GL_GREEN }
 #endif
                 glTexParameteriv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask)
-            }
+            EndIf
 #endif
-        }
-    }
+        Next
+    EndIf
 
     '' Set cubemap texture sampling parameters
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
@@ -2243,109 +2243,211 @@ unsigned int rlLoadTextureCubemap(Sub *data, size as Long, format as Long)
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
 #endif
 
-    if (id > 0) TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Cubemap texture created successfully (%ix%i)", id, size, size)
-    else TRACELOG(LOG_WARNING, "TEXTURE: Failed to load cubemap texture")
+    if (id > 0) Then
+    	TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Cubemap texture created successfully (%ix%i)", id, size, size)
+    else 
+    	TRACELOG(LOG_WARNING, "TEXTURE: Failed to load cubemap texture")
+    EndIf
 
     return id
-}
+End Function
 
 '' Update already loaded texture in GPU with new data
 '' NOTE: We don't know safely if internal texture format is the expected one...
-sub rlUpdateTexture(id as ULong, offsetX as Long, offsetY as long, width as Long, height as Long, format as Long, const Sub *data)
-{
+sub rlUpdateTexture(id as ULong, offsetX as Long, offsetY as long, width as Long, height as Long, format as Long, Data As Any ptr)
     glBindTexture(GL_TEXTURE_2D, id)
 
-    unsigned int glInternalFormat, glFormat, glType
-    rlGetGlTextureFormats(format, &glInternalFormat, &glFormat, &glType)
+    Dim As ULong glInternalFormat, glFormat, glType
+    rlGetGlTextureFormats(format, @glInternalFormat, @glFormat, @glType)
 
-    if ((glInternalFormat != -1) && (format < COMPRESSED_DXT1_RGB))
-    {
-        glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, width, height, glFormat, glType, (unsigned char *)data)
-    }
-    else TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Failed to update for current texture format (%i)", id, format)
-}
+    if ((glInternalFormat <> -1) andalso (format < COMPRESSED_DXT1_RGB)) then
+        glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, width, height, glFormat, glType, data)
+    else 
+    TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Failed to update for current texture format (%i)", id, format)
+		EndIf
+End Sub
 
 '' Get OpenGL internal formats and data type from raylib PixelFormat
 Sub rlGetGlTextureFormats(format as Long, glInternalFormat as ulong ptr, glFormat as ulong ptr, glTypet as ulong Ptr)
-{
     *glInternalFormat = -1
     *glFormat = -1
     *glType = -1
 
-    switch (format)
-    {
-    #if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_21) || defined(GRAPHICS_API_OPENGL_ES2)
+    Select Case (format)
+    #if defined(GRAPHICS_API_OPENGL_11) orelse defined(GRAPHICS_API_OPENGL_21) OrElse defined(GRAPHICS_API_OPENGL_ES2)
         '' NOTE: on OpenGL ES 2.0 (WebGL), internalFormat must match format and options allowed are: GL_LUMINANCE, GL_RGB, GL_RGBA
-        case UNCOMPRESSED_GRAYSCALE: *glInternalFormat = GL_LUMINANCE *glFormat = GL_LUMINANCE *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_GRAY_ALPHA: *glInternalFormat = GL_LUMINANCE_ALPHA *glFormat = GL_LUMINANCE_ALPHA *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_R5G6B5: *glInternalFormat = GL_RGB *glFormat = GL_RGB *glType = GL_UNSIGNED_SHORT_5_6_5 break
-        case UNCOMPRESSED_R8G8B8: *glInternalFormat = GL_RGB *glFormat = GL_RGB *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_R5G5B5A1: *glInternalFormat = GL_RGBA *glFormat = GL_RGBA *glType = GL_UNSIGNED_SHORT_5_5_5_1 break
-        case UNCOMPRESSED_R4G4B4A4: *glInternalFormat = GL_RGBA *glFormat = GL_RGBA *glType = GL_UNSIGNED_SHORT_4_4_4_4 break
-        case UNCOMPRESSED_R8G8B8A8: *glInternalFormat = GL_RGBA *glFormat = GL_RGBA *glType = GL_UNSIGNED_BYTE break
-        #if !defined(GRAPHICS_API_OPENGL_11)
-        case UNCOMPRESSED_R32: if (RLGL.ExtSupported.texFloat32) *glInternalFormat = GL_LUMINANCE *glFormat = GL_LUMINANCE *glType = GL_FLOAT break   '' NOTE: Requires extension OES_texture_float
-        case UNCOMPRESSED_R32G32B32: if (RLGL.ExtSupported.texFloat32) *glInternalFormat = GL_RGB *glFormat = GL_RGB *glType = GL_FLOAT break         '' NOTE: Requires extension OES_texture_float
-        case UNCOMPRESSED_R32G32B32A32: if (RLGL.ExtSupported.texFloat32) *glInternalFormat = GL_RGBA *glFormat = GL_RGBA *glType = GL_FLOAT break    '' NOTE: Requires extension OES_texture_float
+    	case UNCOMPRESSED_GRAYSCALE: 
+    		*glInternalFormat = GL_LUMINANCE 
+    		*glFormat = GL_LUMINANCE 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_GRAY_ALPHA: 
+    		*glInternalFormat = GL_LUMINANCE_ALPHA 
+    		*glFormat = GL_LUMINANCE_ALPHA 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_R5G6B5: 
+    		*glInternalFormat = GL_RGB 
+    		*glFormat = GL_RGB 
+    		*glType = GL_UNSIGNED_SHORT_5_6_5  
+    	case UNCOMPRESSED_R8G8B8: 
+    		*glInternalFormat = GL_RGB 
+    		*glFormat = GL_RGB 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_R5G5B5A1: 
+    		*glInternalFormat = GL_RGBA 
+    		*glFormat = GL_RGBA 
+    		*glType = GL_UNSIGNED_SHORT_5_5_5_1  
+    	case UNCOMPRESSED_R4G4B4A4: 
+    		*glInternalFormat = GL_RGBA 
+    		*glFormat = GL_RGBA 
+    		*glType = GL_UNSIGNED_SHORT_4_4_4_4  
+    	case UNCOMPRESSED_R8G8B8A8: 
+    		*glInternalFormat = GL_RGBA 
+    		*glFormat = GL_RGBA 
+    		*glType = GL_UNSIGNED_BYTE  
+        #if Not Defined(GRAPHICS_API_OPENGL_11)
+    	case UNCOMPRESSED_R32: 
+    		if (RLGL.ExtSupported.texFloat32) Then
+    			*glInternalFormat = GL_LUMINANCE 
+    			*glFormat = GL_LUMINANCE 
+    			*glType = GL_FLOAT     '' NOTE: Requires extension OES_texture_float
+    		EndIf
+    	case UNCOMPRESSED_R32G32B32: 
+    		if (RLGL.ExtSupported.texFloat32) Then 
+    			*glInternalFormat = GL_RGB 
+    			*glFormat = GL_RGB 
+    			*glType = GL_FLOAT           '' NOTE: Requires extension OES_texture_float
+    		EndIf
+    	case UNCOMPRESSED_R32G32B32A32: 
+    		if (RLGL.ExtSupported.texFloat32) Then
+    			*glInternalFormat = GL_RGBA 
+    			*glFormat = GL_RGBA 
+    			*glType = GL_FLOAT      '' NOTE: Requires extension OES_texture_float
+    		EndIf
         #endif
     #ElseIf defined(GRAPHICS_API_OPENGL_33)
-        case UNCOMPRESSED_GRAYSCALE: *glInternalFormat = GL_R8 *glFormat = GL_RED *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_GRAY_ALPHA: *glInternalFormat = GL_RG8 *glFormat = GL_RG *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_R5G6B5: *glInternalFormat = GL_RGB565 *glFormat = GL_RGB *glType = GL_UNSIGNED_SHORT_5_6_5 break
-        case UNCOMPRESSED_R8G8B8: *glInternalFormat = GL_RGB8 *glFormat = GL_RGB *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_R5G5B5A1: *glInternalFormat = GL_RGB5_A1 *glFormat = GL_RGBA *glType = GL_UNSIGNED_SHORT_5_5_5_1 break
-        case UNCOMPRESSED_R4G4B4A4: *glInternalFormat = GL_RGBA4 *glFormat = GL_RGBA *glType = GL_UNSIGNED_SHORT_4_4_4_4 break
-        case UNCOMPRESSED_R8G8B8A8: *glInternalFormat = GL_RGBA8 *glFormat = GL_RGBA *glType = GL_UNSIGNED_BYTE break
-        case UNCOMPRESSED_R32: if (RLGL.ExtSupported.texFloat32) *glInternalFormat = GL_R32F *glFormat = GL_RED *glType = GL_FLOAT break
-        case UNCOMPRESSED_R32G32B32: if (RLGL.ExtSupported.texFloat32) *glInternalFormat = GL_RGB32F *glFormat = GL_RGB *glType = GL_FLOAT break
-        case UNCOMPRESSED_R32G32B32A32: if (RLGL.ExtSupported.texFloat32) *glInternalFormat = GL_RGBA32F *glFormat = GL_RGBA *glType = GL_FLOAT break
+    	case UNCOMPRESSED_GRAYSCALE: 
+    		*glInternalFormat = GL_R8 
+    		*glFormat = GL_RED 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_GRAY_ALPHA: 
+    		*glInternalFormat = GL_RG8 
+    		*glFormat = GL_RG 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_R5G6B5: 
+    		*glInternalFormat = GL_RGB565 
+    		*glFormat = GL_RGB 
+    		*glType = GL_UNSIGNED_SHORT_5_6_5  
+    	case UNCOMPRESSED_R8G8B8: 
+    		*glInternalFormat = GL_RGB8 
+    		*glFormat = GL_RGB 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_R5G5B5A1: 
+    		*glInternalFormat = GL_RGB5_A1 
+    		*glFormat = GL_RGBA 
+    		*glType = GL_UNSIGNED_SHORT_5_5_5_1  
+    	case UNCOMPRESSED_R4G4B4A4: 
+    		*glInternalFormat = GL_RGBA4 
+    		*glFormat = GL_RGBA 
+    		*glType = GL_UNSIGNED_SHORT_4_4_4_4  
+    	case UNCOMPRESSED_R8G8B8A8: 
+    		*glInternalFormat = GL_RGBA8 
+    		*glFormat = GL_RGBA 
+    		*glType = GL_UNSIGNED_BYTE  
+    	case UNCOMPRESSED_R32: 
+    		if (RLGL.ExtSupported.texFloat32) Then
+    			*glInternalFormat = GL_R32F 
+    			*glFormat = GL_RED 
+    			*glType = GL_FLOAT  
+    		EndIf
+    	case UNCOMPRESSED_R32G32B32: 
+    		if (RLGL.ExtSupported.texFloat32) Then
+    			*glInternalFormat = GL_RGB32F 
+    			*glFormat = GL_RGB 
+    			*glType = GL_FLOAT  
+    		EndIf
+    	case UNCOMPRESSED_R32G32B32A32:
+    		if (RLGL.ExtSupported.texFloat32) Then
+    			*glInternalFormat = GL_RGBA32F 
+    			*glFormat = GL_RGBA 
+    			*glType = GL_FLOAT  
+    		EndIf
     #endif
-        #if !defined(GRAPHICS_API_OPENGL_11)
-        case COMPRESSED_DXT1_RGB: if (RLGL.ExtSupported.texCompDXT) *glInternalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT break
-        case COMPRESSED_DXT1_RGBA: if (RLGL.ExtSupported.texCompDXT) *glInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT break
-        case COMPRESSED_DXT3_RGBA: if (RLGL.ExtSupported.texCompDXT) *glInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT break
-        case COMPRESSED_DXT5_RGBA: if (RLGL.ExtSupported.texCompDXT) *glInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT break
-        case COMPRESSED_ETC1_RGB: if (RLGL.ExtSupported.texCompETC1) *glInternalFormat = GL_ETC1_RGB8_OES break                      '' NOTE: Requires OpenGL ES 2.0 or OpenGL 4.3
-        case COMPRESSED_ETC2_RGB: if (RLGL.ExtSupported.texCompETC2) *glInternalFormat = GL_COMPRESSED_RGB8_ETC2 break               '' NOTE: Requires OpenGL ES 3.0 or OpenGL 4.3
-        case COMPRESSED_ETC2_EAC_RGBA: if (RLGL.ExtSupported.texCompETC2) *glInternalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC break     '' NOTE: Requires OpenGL ES 3.0 or OpenGL 4.3
-        case COMPRESSED_PVRT_RGB: if (RLGL.ExtSupported.texCompPVRT) *glInternalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG break    '' NOTE: Requires PowerVR GPU
-        case COMPRESSED_PVRT_RGBA: if (RLGL.ExtSupported.texCompPVRT) *glInternalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG break  '' NOTE: Requires PowerVR GPU
-        case COMPRESSED_ASTC_4x4_RGBA: if (RLGL.ExtSupported.texCompASTC) *glInternalFormat = GL_COMPRESSED_RGBA_ASTC_4x4_KHR break  '' NOTE: Requires OpenGL ES 3.1 or OpenGL 4.3
-        case COMPRESSED_ASTC_8x8_RGBA: if (RLGL.ExtSupported.texCompASTC) *glInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x8_KHR break  '' NOTE: Requires OpenGL ES 3.1 or OpenGL 4.3
+        #if Not Defined(GRAPHICS_API_OPENGL_11)
+    	case COMPRESSED_DXT1_RGB: 
+    		if (RLGL.ExtSupported.texCompDXT) Then
+    			*glInternalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT  
+    		EndIf
+    	case COMPRESSED_DXT1_RGBA: 
+    		if (RLGL.ExtSupported.texCompDXT) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  
+    		EndIf
+    	case COMPRESSED_DXT3_RGBA: 
+    		if (RLGL.ExtSupported.texCompDXT) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  
+    		EndIf
+    	case COMPRESSED_DXT5_RGBA: 
+    		if (RLGL.ExtSupported.texCompDXT) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  
+    		EndIf
+    	case COMPRESSED_ETC1_RGB:
+    		if (RLGL.ExtSupported.texCompETC1) Then
+    			*glInternalFormat = GL_ETC1_RGB8_OES                        '' NOTE: Requires OpenGL ES 2.0 or OpenGL 4.3
+    		EndIf
+    	case COMPRESSED_ETC2_RGB:
+    		if (RLGL.ExtSupported.texCompETC2) Then
+    			*glInternalFormat = GL_COMPRESSED_RGB8_ETC2                 '' NOTE: Requires OpenGL ES 3.0 or OpenGL 4.3
+    		EndIf
+    	case COMPRESSED_ETC2_EAC_RGBA:
+    		if (RLGL.ExtSupported.texCompETC2) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA8_ETC2_EAC       '' NOTE: Requires OpenGL ES 3.0 or OpenGL 4.3
+    		EndIf
+    	case COMPRESSED_PVRT_RGB:
+    		if (RLGL.ExtSupported.texCompPVRT) Then
+    			*glInternalFormat = GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG      '' NOTE: Requires PowerVR GPU
+    		EndIf
+    	case COMPRESSED_PVRT_RGBA:
+    		if (RLGL.ExtSupported.texCompPVRT) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG    '' NOTE: Requires PowerVR GPU
+    		EndIf
+    	case COMPRESSED_ASTC_4x4_RGBA:
+    		if (RLGL.ExtSupported.texCompASTC) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA_ASTC_4x4_KHR    '' NOTE: Requires OpenGL ES 3.1 or OpenGL 4.3
+    		EndIf
+    	case COMPRESSED_ASTC_8x8_RGBA:
+    		if (RLGL.ExtSupported.texCompASTC) Then
+    			*glInternalFormat = GL_COMPRESSED_RGBA_ASTC_8x8_KHR    '' NOTE: Requires OpenGL ES 3.1 or OpenGL 4.3
+    		EndIf
         #endif
-        default: TRACELOG(LOG_WARNING, "TEXTURE: Current format not supported (%i)", format) break
-    }
-}
+    	case Else: 
+    		TRACELOG(LOG_WARNING, "TEXTURE: Current format not supported (%i)", format)  
+    End Select
+End Sub
 
 '' Unload texture from GPU memory
 Sub rlUnloadTexture(id as ULong)
-{
-    glDeleteTextures(1, &id)
-}
+    glDeleteTextures(1, @id)
+End Sub
 
 '' Load a framebuffer to be used for rendering
 '' NOTE: No textures attached
-unsigned int rlLoadFramebuffer(width as Long, height as Long)
-{
-    fboId as ULong = 0
+Function rlLoadFramebuffer(width as Long, height as Long) As ULong
+    Dim fboId as ULong = 0
 
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)) && defined(SUPPORT_RENDER_TEXTURES_HINT)
-    glGenFramebuffers(1, &fboId)       '' Create the framebuffer object
+#if (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)) AndAlso defined(SUPPORT_RENDER_TEXTURES_HINT)
+    glGenFramebuffers(1, @fboId)       '' Create the framebuffer object
     glBindFramebuffer(GL_FRAMEBUFFER, 0)   '' Unbind any framebuffer
 #endif
 
     return fboId
-}
+End Function
 
 '' Attach color buffer texture to an fbo (unloads previous attachment)
 '' NOTE: Attach type: 0-Color, 1-Depth renderbuffer, 2-Depth texture
 Sub rlFramebufferAttach(fboId as ULong, texId as ulong, attachType as Long, texType as Long)
-{
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)) && defined(SUPPORT_RENDER_TEXTURES_HINT)
+#If (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)) AndAlso defined(SUPPORT_RENDER_TEXTURES_HINT)
     glBindFramebuffer(GL_FRAMEBUFFER, fboId)
 
-    switch (attachType)
-    {
+    Select Case (attachType)
         case RL_ATTACHMENT_COLOR_CHANNEL0:
         case RL_ATTACHMENT_COLOR_CHANNEL1:
         case RL_ATTACHMENT_COLOR_CHANNEL2:
@@ -2353,143 +2455,139 @@ Sub rlFramebufferAttach(fboId as ULong, texId as ulong, attachType as Long, texT
         case RL_ATTACHMENT_COLOR_CHANNEL4:
         case RL_ATTACHMENT_COLOR_CHANNEL5:
         case RL_ATTACHMENT_COLOR_CHANNEL6:
-        case RL_ATTACHMENT_COLOR_CHANNEL7:
-        {
-            if (texType == RL_ATTACHMENT_TEXTURE2D) glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachType, GL_TEXTURE_2D, texId, 0)
-            else if (texType == RL_ATTACHMENT_RENDERBUFFER) glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachType, GL_RENDERBUFFER, texId)
-            else if (texType >= RL_ATTACHMENT_CUBEMAP_POSITIVE_X) glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachType, GL_TEXTURE_CUBE_MAP_POSITIVE_X + texType, texId, 0)
-
-        } break
-        case RL_ATTACHMENT_DEPTH:
-        {
-            if (texType == RL_ATTACHMENT_TEXTURE2D) glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0)
-            else if (texType == RL_ATTACHMENT_RENDERBUFFER)  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texId)
-
-        } break
+    	Case RL_ATTACHMENT_COLOR_CHANNEL7:
+            if (texType = RL_ATTACHMENT_TEXTURE2D) Then
+            	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachType, GL_TEXTURE_2D, texId, 0)
+            ElseIf (texType = RL_ATTACHMENT_RENDERBUFFER) Then
+            	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachType, GL_RENDERBUFFER, texId)
+            ElseIf (texType >= RL_ATTACHMENT_CUBEMAP_POSITIVE_X) Then
+            	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachType, GL_TEXTURE_CUBE_MAP_POSITIVE_X + texType, texId, 0)
+				EndIf  
+    	case RL_ATTACHMENT_DEPTH:
+            if (texType = RL_ATTACHMENT_TEXTURE2D) Then
+            	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0)
+            elseif (texType = RL_ATTACHMENT_RENDERBUFFER) Then
+            	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texId)
+            EndIf  
         case RL_ATTACHMENT_STENCIL:
-        {
-            if (texType == RL_ATTACHMENT_TEXTURE2D) glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texId, 0)
-            else if (texType == RL_ATTACHMENT_RENDERBUFFER)  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, texId)
-
-        } break
-        default: break
-    }
+            if (texType = RL_ATTACHMENT_TEXTURE2D) Then
+            	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texId, 0)
+            elseif (texType = RL_ATTACHMENT_RENDERBUFFER) Then
+            	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, texId)
+				EndIf  
+        case Else:  
+    End Select
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 #endif
-}
+End Sub
 
 '' Verify render texture is complete
-bool rlFramebufferComplete(id as ULong)
-{
-    bool result = FALSE
+Function rlFramebufferComplete(id as ULong) As boolean
+    Dim As boolean result = FALSE
 
-#if (defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)) && defined(SUPPORT_RENDER_TEXTURES_HINT)
+#if (defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)) AndAlso defined(SUPPORT_RENDER_TEXTURES_HINT)
     glBindFramebuffer(GL_FRAMEBUFFER, id)
 
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+    Dim As GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
 
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-        switch (status)
-        {
-            case GL_FRAMEBUFFER_UNSUPPORTED: TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer is unsupported", id) break
-            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer has incomplete attachment", id) break
+    if (status <> GL_FRAMEBUFFER_COMPLETE) Then
+        Select Case (status)
+        	case GL_FRAMEBUFFER_UNSUPPORTED:
+        		TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer is unsupported", id)  
+        	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 
+        		TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer has incomplete attachment", id)  
 #if defined(GRAPHICS_API_OPENGL_ES2)
-            case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS: TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer has incomplete dimensions", id) break
+        	case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+        		TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer has incomplete dimensions", id)  
 #endif
-            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer has a missing attachment", id) break
-            default: break
-        }
-    }
+        	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+        		TRACELOG(LOG_WARNING, "FBO: [ID %i] Framebuffer has a missing attachment", id)  
+        	Case Else:  
+        End Select
+    EndIf
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-    result = (status == GL_FRAMEBUFFER_COMPLETE)
+    result = iif(status = GL_FRAMEBUFFER_COMPLETE,1,0)
 #endif
 
     return result
-}
+End Function
 
 '' Generate mipmap data for selected texture
 Sub rlGenerateMipmaps(texture as Texture2D Ptr)
-{
     glBindTexture(GL_TEXTURE_2D, texture->id)
 
     '' Check if texture is power-of-two (POT)
-    bool texIsPOT = FALSE
+    Dim As boolean texIsPOT = FALSE
 
-    if (((texture->width > 0) && ((texture->width & (texture->width - 1)) == 0)) &&
-        ((texture->height > 0) && ((texture->height & (texture->height - 1)) == 0))) texIsPOT = TRUE
+    if (((texture->width > 0) AndAlso ((texture->width And (texture->width - 1)) = 0)) AndAlso
+        ((texture->height > 0) AndAlso ((texture->height and (texture->height - 1)) = 0))) Then texIsPOT = TRUE
 
 #if defined(GRAPHICS_API_OPENGL_11)
-    if (texIsPOT)
-    {
+    if (texIsPOT) Then
         '' WARNING: Manual mipmap generation only works for RGBA 32bit textures!
-        if (texture->format == UNCOMPRESSED_R8G8B8A8)
-        {
+        if (texture->format = UNCOMPRESSED_R8G8B8A8) then
             '' Retrieve texture data from VRAM
-            Sub *data = rlReadTexturePixels(*texture)
+            Dim As Any Ptr Data = rlReadTexturePixels(*texture)
 
             '' NOTE: data size is reallocated to fit mipmaps data
             '' NOTE: CPU mipmap generation only supports RGBA 32bit data
-            mipmapCount as Long = GenerateMipmaps(data, texture->width, texture->height)
+            Dim mipmapCount as Long = GenerateMipmaps(data, texture->width, texture->height)
 
-            size as Long = texture->width*texture->height*4
-            int offset = size
+            Dim size as Long = texture->width*texture->height*4
+            Dim As long offset = size
 
-            int mipWidth = texture->width/2
-            int mipHeight = texture->height/2
+            Dim As long mipWidth = texture->width/2
+            Dim As long mipHeight = texture->height/2
 
             '' Load the mipmaps
-            for (int level = 1 level < mipmapCount level++)
-            {
-                glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, mipWidth, mipHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char *)data + offset)
+            for level As ULong = 1 to mipmapCount-1
+                glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, mipWidth, mipHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, Data + offset)
 
                 size = mipWidth*mipHeight*4
                 offset += size
 
                 mipWidth /= 2
                 mipHeight /= 2
-            }
+            Next
 
             texture->mipmaps = mipmapCount + 1
             RL_FREE(data) '' Once mipmaps have been generated and data has been uploaded to GPU VRAM, we can discard RAM data
 
             TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Mipmaps generated manually on CPU side, total: %i", texture->id, texture->mipmaps)
-        }
-        else TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Failed to generate mipmaps for provided texture format", texture->id)
-    }
-#ElseIf defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    if ((texIsPOT) || (RLGL.ExtSupported.texNPOT))
-    {
+        else 
+        TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Failed to generate mipmaps for provided texture format", texture->id)
+        EndIf
+#ElseIf defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    if ((texIsPOT) OrElse (RLGL.ExtSupported.texNPOT)) Then
         ''glHint(GL_GENERATE_MIPMAP_HINT, GL_DONT_CARE)   '' Hint for mipmaps generation algorythm: GL_FASTEST, GL_NICEST, GL_DONT_CARE
         glGenerateMipmap(GL_TEXTURE_2D)    '' Generate mipmaps automatically
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)   '' Activate Trilinear filtering for mipmaps
 
-        #define MIN(a,b) (((a)<(b))?(a):(b))
-        #define MAX(a,b) (((a)>(b))?(a):(b))
+        #define MIN(a,b) IIf(((a)<(b)),(a),(b))
+        #define MAX(a,b) IIf(((a)>(b)),(a),(b))
 
         texture->mipmaps =  1 + (int)floor(log(MAX(texture->width, texture->height))/log(2))
         TRACELOG(LOG_INFO, "TEXTURE: [ID %i] Mipmaps generated automatically, total: %i", texture->id, texture->mipmaps)
-    }
-#endif
-    else TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Failed to generate mipmaps", texture->id)
-
+#EndIf
+    else 
+    TRACELOG(LOG_WARNING, "TEXTURE: [ID %i] Failed to generate mipmaps", texture->id)
+		EndIf
     glBindTexture(GL_TEXTURE_2D, 0)
-}
+End Sub
 
 '' Upload vertex data into a VAO (if supported) and VBO
+'TODO
 Sub rlLoadMesh(mesh as Mesh ptr, dynamic as boolean)
-{
-    if (mesh->vaoId > 0)
-    {
+    if (mesh->vaoId > 0) Then
         '' Check if mesh has already been loaded in GPU
         TRACELOG(LOG_WARNING, "VAO: [ID %i] Trying to re-load an already loaded mesh", mesh->vaoId)
-        Return
-    }
+        Exit Sub
+    EndIf
 
     mesh->vaoId = 0        '' Vertex Array Object
     mesh->vboId[0] = 0     '' Vertex positions VBO
@@ -2500,232 +2598,220 @@ Sub rlLoadMesh(mesh as Mesh ptr, dynamic as boolean)
     mesh->vboId[5] = 0     '' Vertex texcoords2 VBO
     mesh->vboId[6] = 0     '' Vertex indices VBO
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    int drawHint = GL_STATIC_DRAW
-    if (dynamic) drawHint = GL_DYNAMIC_DRAW
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    Dim As Long drawHint = GL_STATIC_DRAW
+    if (dynamic) Then drawHint = GL_DYNAMIC_DRAW
 
-    if (RLGL.ExtSupported.vao)
-    {
+    if (RLGL.ExtSupported.vao) Then
         '' Initialize Quads VAO (Buffer A)
         glGenVertexArrays(1, &mesh->vaoId)
         glBindVertexArray(mesh->vaoId)
-    }
+    EndIf
 
     '' NOTE: Attributes must be uploaded considering default locations points
 
     '' Enable vertex attributes: position (shader-location = 0)
-    glGenBuffers(1, &mesh->vboId[0])
+    glGenBuffers(1, @mesh->vboId[0])
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vboId[0])
-    glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*3*sizeof(float), mesh->vertices, drawHint)
+    glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*3*sizeof(Single), mesh->vertices, drawHint)
     glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, 0)
     glEnableVertexAttribArray(0)
 
     '' Enable vertex attributes: texcoords (shader-location = 1)
-    glGenBuffers(1, &mesh->vboId[1])
+    glGenBuffers(1, @mesh->vboId[1])
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vboId[1])
-    glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*2*sizeof(float), mesh->texcoords, drawHint)
+    glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*2*sizeof(Single), mesh->texcoords, drawHint)
     glVertexAttribPointer(1, 2, GL_FLOAT, 0, 0, 0)
     glEnableVertexAttribArray(1)
 
     '' Enable vertex attributes: normals (shader-location = 2)
-    if (mesh->normals != NULL)
-    {
-        glGenBuffers(1, &mesh->vboId[2])
+    if (mesh->normals <> NULL) Then
+        glGenBuffers(1, @mesh->vboId[2])
         glBindBuffer(GL_ARRAY_BUFFER, mesh->vboId[2])
-        glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*3*sizeof(float), mesh->normals, drawHint)
+        glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*3*sizeof(Single), mesh->normals, drawHint)
         glVertexAttribPointer(2, 3, GL_FLOAT, 0, 0, 0)
         glEnableVertexAttribArray(2)
-    }
-    else
-    {
+    Else
         '' Default color vertex attribute set to WHITE
         glVertexAttrib3f(2, 1.0f, 1.0f, 1.0f)
         glDisableVertexAttribArray(2)
-    }
+    EndIf
 
     '' Default color vertex attribute (shader-location = 3)
-    if (mesh->colors != NULL)
-    {
-        glGenBuffers(1, &mesh->vboId[3])
+    if (mesh->colors <> NULL) Then
+        glGenBuffers(1, @mesh->vboId[3])
         glBindBuffer(GL_ARRAY_BUFFER, mesh->vboId[3])
         glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*4*sizeof(unsigned char), mesh->colors, drawHint)
         glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, 0)
         glEnableVertexAttribArray(3)
-    }
-    else
-    {
+    Else
         '' Default color vertex attribute set to WHITE
         glVertexAttrib4f(3, 1.0f, 1.0f, 1.0f, 1.0f)
         glDisableVertexAttribArray(3)
-    }
+    EndIf
 
     '' Default tangent vertex attribute (shader-location = 4)
-    if (mesh->tangents != NULL)
-    {
-        glGenBuffers(1, &mesh->vboId[4])
+    if (mesh->tangents <> NULL) Then
+        glGenBuffers(1, @mesh->vboId[4])
         glBindBuffer(GL_ARRAY_BUFFER, mesh->vboId[4])
-        glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*4*sizeof(float), mesh->tangents, drawHint)
+        glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*4*sizeof(Single), mesh->tangents, drawHint)
         glVertexAttribPointer(4, 4, GL_FLOAT, 0, 0, 0)
         glEnableVertexAttribArray(4)
-    }
-    else
-    {
+    Else
         '' Default tangents vertex attribute
         glVertexAttrib4f(4, 0.0f, 0.0f, 0.0f, 0.0f)
         glDisableVertexAttribArray(4)
-    }
+    EndIf
 
     '' Default texcoord2 vertex attribute (shader-location = 5)
-    if (mesh->texcoords2 != NULL)
-    {
-        glGenBuffers(1, &mesh->vboId[5])
+    if (mesh->texcoords2 <> NULL) Then
+        glGenBuffers(1, @mesh->vboId[5])
         glBindBuffer(GL_ARRAY_BUFFER, mesh->vboId[5])
-        glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*2*sizeof(float), mesh->texcoords2, drawHint)
+        glBufferData(GL_ARRAY_BUFFER, mesh->vertexCount*2*sizeof(Single), mesh->texcoords2, drawHint)
         glVertexAttribPointer(5, 2, GL_FLOAT, 0, 0, 0)
         glEnableVertexAttribArray(5)
-    }
-    else
-    {
+    Else
         '' Default texcoord2 vertex attribute
         glVertexAttrib2f(5, 0.0f, 0.0f)
         glDisableVertexAttribArray(5)
-    }
+    EndIf
 
-    if (mesh->indices != NULL)
-    {
-        glGenBuffers(1, &mesh->vboId[6])
+    if (mesh->indices <> NULL) Then
+        glGenBuffers(1, @mesh->vboId[6])
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vboId[6])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->triangleCount*3*sizeof(unsigned short), mesh->indices, drawHint)
-    }
+    EndIf
 
-    if (RLGL.ExtSupported.vao)
-    {
-        if (mesh->vaoId > 0) TRACELOG(LOG_INFO, "VAO: [ID %i] Mesh uploaded successfully to VRAM (GPU)", mesh->vaoId)
-        else TRACELOG(LOG_WARNING, "VAO: Failed to load mesh to VRAM (GPU)")
-    }
-    else
-    {
+    if (RLGL.ExtSupported.vao) Then
+        if (mesh->vaoId > 0) Then
+        	TRACELOG(LOG_INFO, "VAO: [ID %i] Mesh uploaded successfully to VRAM (GPU)", mesh->vaoId)
+        else 
+   	 	TRACELOG(LOG_WARNING, "VAO: Failed to load mesh to VRAM (GPU)")
+        EndIf
+    Else
         TRACELOG(LOG_INFO, "VBO: Mesh uploaded successfully to VRAM (GPU)")
-    }
+    EndIf 
 #endif
-}
+End Sub
 
 '' Load a new attributes buffer
-unsigned int rlLoadAttribBuffer(vaoId as ulong, shaderLoc as Long, Sub *buffer, size as Long, dynamic as boolean)
-{
-    id as ulong = 0
+function rlLoadAttribBuffer(vaoId as ulong, shaderLoc as Long, Sub *buffer, size as Long, dynamic as boolean) ULong
+    Dim id as ulong = 0
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
-    int drawHint = GL_STATIC_DRAW
-    if (dynamic) drawHint = GL_DYNAMIC_DRAW
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
+    Dim As Long drawHint = GL_STATIC_DRAW
+    if (dynamic) Then drawHint = GL_DYNAMIC_DRAW
 
-    if (RLGL.ExtSupported.vao) glBindVertexArray(vaoId)
+    if (RLGL.ExtSupported.vao) Then glBindVertexArray(vaoId)
 
-    glGenBuffers(1, &id)
+    glGenBuffers(1, @id)
     glBindBuffer(GL_ARRAY_BUFFER, id)
     glBufferData(GL_ARRAY_BUFFER, size, buffer, drawHint)
     glVertexAttribPointer(shaderLoc, 2, GL_FLOAT, 0, 0, 0)
     glEnableVertexAttribArray(shaderLoc)
 
-    if (RLGL.ExtSupported.vao) glBindVertexArray(0)
+    if (RLGL.ExtSupported.vao) Then glBindVertexArray(0)
 #endif
 
     return id
-}
+End Function
 
 '' Update vertex or index data on GPU (upload new data to one buffer)
 Sub rlUpdateMesh(mesh as Mesh, buffer as Long, count as Long)
-{
     rlUpdateMeshAt(mesh, buffer, count, 0)
-}
+End Sub
 
 '' Update vertex or index data on GPU, at index
 '' WARNING: error checking is in place that will cause the data to not be
 ''          updated if offset + size exceeds what the buffer can hold
 Sub rlUpdateMeshAt(mesh as Mesh, buffer as Long, count as Long, index as Long)
-{
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#If defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' Activate mesh VAO
     if (RLGL.ExtSupported.vao) glBindVertexArray(mesh.vaoId)
 
-    switch (buffer)
-    {
-        case 0:     '' Update vertices (vertex position)
-        {
+    Select Case (buffer)
+    	case 0     '' Update vertices (vertex position)
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[0])
-            if (index == 0 && count >= mesh.vertexCount) glBufferData(GL_ARRAY_BUFFER, count*3*sizeof(float), mesh.vertices, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.vertexCount) break
-            else glBufferSubData(GL_ARRAY_BUFFER, index*3*sizeof(float), count*3*sizeof(float), mesh.vertices)
+            if (index = 0 andalso count >= mesh.vertexCount) Then
+            	glBufferData(GL_ARRAY_BUFFER, count*3*sizeof(Single), mesh.vertices, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.vertexCount) Then
+            else 
+            	glBufferSubData(GL_ARRAY_BUFFER, index*3*sizeof(single), count*3*sizeof(Single), mesh.vertices)
+            EndIf
 
-        } break
-        case 1:     '' Update texcoords (vertex texture coordinates)
-        {
+    	case 1     '' Update texcoords (vertex texture coordinates)
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[1])
-            if (index == 0 && count >= mesh.vertexCount) glBufferData(GL_ARRAY_BUFFER, count*2*sizeof(float), mesh.texcoords, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.vertexCount) break
-            else glBufferSubData(GL_ARRAY_BUFFER, index*2*sizeof(float), count*2*sizeof(float), mesh.texcoords)
+            if (index = 0 andalso count >= mesh.vertexCount) Then
+            	glBufferData(GL_ARRAY_BUFFER, count*2*sizeof(Single), mesh.texcoords, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.vertexCount) Then  
+            else 
+            	glBufferSubData(GL_ARRAY_BUFFER, index*2*sizeof(single), count*2*sizeof(Single), mesh.texcoords)
+            EndIf
 
-        } break
-        case 2:     '' Update normals (vertex normals)
-        {
+    	case 2     '' Update normals (vertex normals)
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[2])
-            if (index == 0 && count >= mesh.vertexCount) glBufferData(GL_ARRAY_BUFFER, count*3*sizeof(float), mesh.normals, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.vertexCount) break
-            else glBufferSubData(GL_ARRAY_BUFFER, index*3*sizeof(float), count*3*sizeof(float), mesh.normals)
+            if (index = 0 andalso count >= mesh.vertexCount) Then
+            	glBufferData(GL_ARRAY_BUFFER, count*3*sizeof(Single), mesh.normals, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.vertexCount) Then
+            else 
+            	glBufferSubData(GL_ARRAY_BUFFER, index*3*sizeof(single), count*3*sizeof(Single), mesh.normals)
+            EndIf
 
-        } break
-        case 3:     '' Update colors (vertex colors)
-        {
+    	case 3     '' Update colors (vertex colors)
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[3])
-            if (index == 0 && count >= mesh.vertexCount) glBufferData(GL_ARRAY_BUFFER, count*4*sizeof(unsigned char), mesh.colors, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.vertexCount) break
-            else glBufferSubData(GL_ARRAY_BUFFER, index*4*sizeof(unsigned char), count*4*sizeof(unsigned char), mesh.colors)
+            if (index = 0 andalso count >= mesh.vertexCount) Then
+             glBufferData(GL_ARRAY_BUFFER, count*4*sizeof(unsigned char), mesh.colors, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.vertexCount) Then  
+            else 
+            glBufferSubData(GL_ARRAY_BUFFER, index*4*sizeof(unsigned char), count*4*sizeof(unsigned char), mesh.colors)
+            EndIf
 
-        } break
-        case 4:     '' Update tangents (vertex tangents)
-        {
+    	case 4     '' Update tangents (vertex tangents)
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[4])
-            if (index == 0 && count >= mesh.vertexCount) glBufferData(GL_ARRAY_BUFFER, count*4*sizeof(float), mesh.tangents, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.vertexCount) break
-            else glBufferSubData(GL_ARRAY_BUFFER, index*4*sizeof(float), count*4*sizeof(float), mesh.tangents)
+            if (index = 0 andalso count >= mesh.vertexCount) Then
+            	glBufferData(GL_ARRAY_BUFFER, count*4*sizeof(Single), mesh.tangents, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.vertexCount) Then  
+            else 
+            	glBufferSubData(GL_ARRAY_BUFFER, index*4*sizeof(single), count*4*sizeof(Single), mesh.tangents)
+            EndIf
 
-        } break
-        case 5:     '' Update texcoords2 (vertex second texture coordinates)
-        {
+    	case 5     '' Update texcoords2 (vertex second texture coordinates)
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[5])
-            if (index == 0 && count >= mesh.vertexCount) glBufferData(GL_ARRAY_BUFFER, count*2*sizeof(float), mesh.texcoords2, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.vertexCount) break
-            else glBufferSubData(GL_ARRAY_BUFFER, index*2*sizeof(float), count*2*sizeof(float), mesh.texcoords2)
+            if (index = 0 andalso count >= mesh.vertexCount) Then
+            	glBufferData(GL_ARRAY_BUFFER, count*2*sizeof(Single), mesh.texcoords2, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.vertexCount) Then  
+            else 
+            	glBufferSubData(GL_ARRAY_BUFFER, index*2*sizeof(single), count*2*sizeof(Single), mesh.texcoords2)
+            EndIf
 
-        } break
-        case 6:     '' Update indices (triangle index buffer)
-        {
+    	case 6     '' Update indices (triangle index buffer)
             '' the * 3 is because each triangle has 3 indices
-            unsigned short *indices = mesh.indices
+            Dim As ushort Ptr indices = mesh.indices
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboId[6])
 
-            if (index == 0 && count >= mesh.triangleCount) glBufferData(GL_ELEMENT_ARRAY_BUFFER, count*3*sizeof(*indices), indices, GL_DYNAMIC_DRAW)
-            else if (index + count >= mesh.triangleCount) break
-            else glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, index*3*sizeof(*indices), count*3*sizeof(*indices), indices)
+            if (index = 0 andalso count >= mesh.triangleCount) Then
+            	glBufferData(GL_ELEMENT_ARRAY_BUFFER, count*3*sizeof(*indices), indices, GL_DYNAMIC_DRAW)
+            elseif (index + count >= mesh.triangleCount) Then 
+            else 
+            	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, index*3*sizeof(*indices), count*3*sizeof(*indices), indices)
+            EndIf
 
-        } break
-        default: break
-    }
+    	case Else:  
+    End Select
 
     '' Unbind the current VAO
-    if (RLGL.ExtSupported.vao) glBindVertexArray(0)
+    if (RLGL.ExtSupported.vao) Then glBindVertexArray(0)
 
     '' Another option would be using buffer mapping...
     ''mesh.vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)
     '' Now we can modify vertices
     ''glUnmapBuffer(GL_ARRAY_BUFFER)
 #endif
-}
+End Sub
 
 '' Draw a 3d mesh with material and transform
 Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
-{
-#if defined(GRAPHICS_API_OPENGL_11)
+#If defined(GRAPHICS_API_OPENGL_11)
     glEnable(GL_TEXTURE_2D)
     glBindTexture(GL_TEXTURE_2D, material.maps[MAP_DIFFUSE].texture.id)
 
@@ -2757,7 +2843,7 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
     glBindTexture(GL_TEXTURE_2D, 0)
 #endif
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' Bind shader program
     glUseProgram(material.shader.id)
 
@@ -2768,17 +2854,17 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
 
     '' Upload to shader material.colDiffuse
     if (material.shader.locs[LOC_COLOR_DIFFUSE] != -1)
-        glUniform4f(material.shader.locs[LOC_COLOR_DIFFUSE], (float)material.maps[MAP_DIFFUSE].color.r/255.0f,
-                                                           (float)material.maps[MAP_DIFFUSE].color.g/255.0f,
-                                                           (float)material.maps[MAP_DIFFUSE].color.b/255.0f,
-                                                           (float)material.maps[MAP_DIFFUSE].color.a/255.0f)
+        glUniform4f(material.shader.locs[LOC_COLOR_DIFFUSE], (Single)material.maps[MAP_DIFFUSE].color.r/255.0f,
+                                                           (Single)material.maps[MAP_DIFFUSE].color.g/255.0f,
+                                                           (Single)material.maps[MAP_DIFFUSE].color.b/255.0f,
+                                                           (Single)material.maps[MAP_DIFFUSE].color.a/255.0f)
 
     '' Upload to shader material.colSpecular (if available)
     if (material.shader.locs[LOC_COLOR_SPECULAR] != -1)
-        glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], (float)material.maps[MAP_SPECULAR].color.r/255.0f,
-                                                               (float)material.maps[MAP_SPECULAR].color.g/255.0f,
-                                                               (float)material.maps[MAP_SPECULAR].color.b/255.0f,
-                                                               (float)material.maps[MAP_SPECULAR].color.a/255.0f)
+        glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], (Single)material.maps[MAP_SPECULAR].color.r/255.0f,
+                                                               (Single)material.maps[MAP_SPECULAR].color.g/255.0f,
+                                                               (Single)material.maps[MAP_SPECULAR].color.b/255.0f,
+                                                               (Single)material.maps[MAP_SPECULAR].color.a/255.0f)
 
     if (material.shader.locs[LOC_MATRIX_VIEW] != -1) SetShaderValueMatrix(material.shader, material.shader.locs[LOC_MATRIX_VIEW], RLGL.State.modelview)
     if (material.shader.locs[LOC_MATRIX_PROJECTION] != -1) SetShaderValueMatrix(material.shader, material.shader.locs[LOC_MATRIX_PROJECTION], RLGL.State.projection)
@@ -2803,7 +2889,7 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
         if (material.maps[i].texture.id > 0)
         {
             glActiveTexture(GL_TEXTURE0 + i)
-            if ((i == MAP_IRRADIANCE) || (i == MAP_PREFILTER) || (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, material.maps[i].texture.id)
+            if ((i == MAP_IRRADIANCE) orelse (i == MAP_PREFILTER) OrElse (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, material.maps[i].texture.id)
             else glBindTexture(GL_TEXTURE_2D, material.maps[i].texture.id)
 
             glUniform1i(material.shader.locs[LOC_MAP_DIFFUSE + i], i)
@@ -2896,7 +2982,7 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
     for (int i = 0 i < MAX_MATERIAL_MAPS i++)
     {
         glActiveTexture(GL_TEXTURE0 + i)       '' Set shader active texture
-        if ((i == MAP_IRRADIANCE) || (i == MAP_PREFILTER) || (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
+        if ((i == MAP_IRRADIANCE) orelse (i == MAP_PREFILTER) OrElse (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
         else glBindTexture(GL_TEXTURE_2D, 0)   '' Unbind current active texture
     }
 
@@ -2916,7 +3002,7 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
     RLGL.State.projection = matProjection
     RLGL.State.modelview = matView
 #endif
-}
+End Sub
 
 '' Draw a 3d mesh with material and transform
 Sub rlDrawMeshInstanced(mesh as Mesh, material as Material, transform as Matrix ptr, count as Long)
@@ -2927,17 +3013,17 @@ Sub rlDrawMeshInstanced(mesh as Mesh, material as Material, transform as Matrix 
 
     '' Upload to shader material.colDiffuse
     if (material.shader.locs[LOC_COLOR_DIFFUSE] != -1)
-        glUniform4f(material.shader.locs[LOC_COLOR_DIFFUSE], (float)material.maps[MAP_DIFFUSE].color.r/255.0f,
-                                                           (float)material.maps[MAP_DIFFUSE].color.g/255.0f,
-                                                           (float)material.maps[MAP_DIFFUSE].color.b/255.0f,
-                                                           (float)material.maps[MAP_DIFFUSE].color.a/255.0f)
+        glUniform4f(material.shader.locs[LOC_COLOR_DIFFUSE], (Single)material.maps[MAP_DIFFUSE].color.r/255.0f,
+                                                           (Single)material.maps[MAP_DIFFUSE].color.g/255.0f,
+                                                           (Single)material.maps[MAP_DIFFUSE].color.b/255.0f,
+                                                           (Single)material.maps[MAP_DIFFUSE].color.a/255.0f)
 
     '' Upload to shader material.colSpecular (if available)
     if (material.shader.locs[LOC_COLOR_SPECULAR] != -1)
-        glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], (float)material.maps[MAP_SPECULAR].color.r/255.0f,
-                                                               (float)material.maps[MAP_SPECULAR].color.g/255.0f,
-                                                               (float)material.maps[MAP_SPECULAR].color.b/255.0f,
-                                                               (float)material.maps[MAP_SPECULAR].color.a/255.0f)
+        glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], (Single)material.maps[MAP_SPECULAR].color.r/255.0f,
+                                                               (Single)material.maps[MAP_SPECULAR].color.g/255.0f,
+                                                               (Single)material.maps[MAP_SPECULAR].color.b/255.0f,
+                                                               (Single)material.maps[MAP_SPECULAR].color.a/255.0f)
 
     '' Bind active texture maps (if available)
     for (int i = 0 i < MAX_MATERIAL_MAPS i++)
@@ -2945,7 +3031,7 @@ Sub rlDrawMeshInstanced(mesh as Mesh, material as Material, transform as Matrix 
         if (material.maps[i].texture.id > 0)
         {
             glActiveTexture(GL_TEXTURE0 + i)
-            if ((i == MAP_IRRADIANCE) || (i == MAP_PREFILTER) || (i == MAP_CUBEMAP))
+            if ((i == MAP_IRRADIANCE) orelse (i == MAP_PREFILTER) OrElse (i == MAP_CUBEMAP))
                 glBindTexture(GL_TEXTURE_CUBE_MAP, material.maps[i].texture.id)
             else glBindTexture(GL_TEXTURE_2D, material.maps[i].texture.id)
 
@@ -2998,7 +3084,7 @@ Sub rlDrawMeshInstanced(mesh as Mesh, material as Material, transform as Matrix 
     for (int i = 0 i < MAX_MATERIAL_MAPS i++)
     {
         glActiveTexture(GL_TEXTURE0 + i)       '' Set shader active texture
-        if ((i == MAP_IRRADIANCE) || (i == MAP_PREFILTER) || (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
+        if ((i == MAP_IRRADIANCE) orelse (i == MAP_PREFILTER) OrElse (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
         else glBindTexture(GL_TEXTURE_2D, 0)   '' Unbind current active texture
     }
 
@@ -3029,7 +3115,7 @@ Sub rlUnloadMesh(mesh as Mesh)
     RL_FREE(mesh.boneWeights)
     RL_FREE(mesh.boneIds)
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     for (int i = 0 i < 7 i++) glDeleteBuffers(1, &mesh.vboId[i]) '' DEFAULT_MESH_VERTEX_BUFFERS (model.c)
     if (RLGL.ExtSupported.vao)
     {
@@ -3075,7 +3161,7 @@ Sub *rlReadTexturePixels(texture as Texture2D)
 {
     Sub *pixels = NULL
 
-#if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
+#if defined(GRAPHICS_API_OPENGL_11) OrElse defined(GRAPHICS_API_OPENGL_33)
     glBindTexture(GL_TEXTURE_2D, texture.id)
 
     '' NOTE: Using texture.id, we can retrieve some texture info (but not on OpenGL ES 2.0)
@@ -3145,7 +3231,7 @@ Sub *rlReadTexturePixels(texture as Texture2D)
 Texture2D GetTextureDefault()
 {
     texture as Texture2D = { 0 }
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     texture.id = RLGL.State.defaultTextureId
     texture.width = 1
     texture.height = 1
@@ -3180,7 +3266,7 @@ Rectangle GetShapesTextureRec()
 '' Define default texture used to draw shapes
 Sub SetShapesTexture(texture as Texture2D, Rectangle source)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     RLGL.State.shapesTexture = texture
     RLGL.State.shapesTextureRec = source
 #endif
@@ -3189,7 +3275,7 @@ Sub SetShapesTexture(texture as Texture2D, Rectangle source)
 '' Get default shader
 Shader GetShaderDefault()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     return RLGL.State.defaultShader
 #else
     Shader shader = { 0 }
@@ -3229,7 +3315,7 @@ Shader LoadShaderCode(const char *vsCode, const char *fsCode)
     '' NOTE: All locations must be reseted to -1 (no location)
     for (int i = 0 i < MAX_SHADER_LOCATIONS i++) shader.locs[i] = -1
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     unsigned int vertexShaderId = RLGL.State.defaultVShaderId
     unsigned int fragmentShaderId = RLGL.State.defaultFShaderId
 
@@ -3292,7 +3378,7 @@ Shader LoadShaderCode(const char *vsCode, const char *fsCode)
 '' Unload shader from GPU memory (VRAM)
 Sub UnloadShader(Shader shader)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     if (shader.id != RLGL.State.defaultShader.id)
     {
         glDeleteProgram(shader.id)
@@ -3306,7 +3392,7 @@ Sub UnloadShader(Shader shader)
 '' Begin custom shader mode
 Sub BeginShaderMode(Shader shader)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     if (RLGL.State.currentShader.id != shader.id)
     {
         DrawRenderBatch(RLGL.currentBatch)
@@ -3318,7 +3404,7 @@ Sub BeginShaderMode(Shader shader)
 '' End custom shader mode (returns to default shader)
 sub EndShaderMode()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     BeginShaderMode(RLGL.State.defaultShader)
 #endif
 }
@@ -3327,7 +3413,7 @@ sub EndShaderMode()
 int GetShaderLocation(Shader shader, const char *uniformName)
 {
     int location = -1
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     location = glGetUniformLocation(shader.id, uniformName)
 
     if (location == -1) TRACELOG(LOG_WARNING, "SHADER: [ID %i] Failed to find shader uniform: %s", shader.id, uniformName)
@@ -3340,7 +3426,7 @@ int GetShaderLocation(Shader shader, const char *uniformName)
 int GetShaderLocationAttrib(Shader shader, const char *attribName)
 {
     int location = -1
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     location = glGetAttribLocation(shader.id, attribName)
 
     if (location == -1) TRACELOG(LOG_WARNING, "SHADER: [ID %i] Failed to find shader attribute: %s", shader.id, attribName)
@@ -3358,21 +3444,21 @@ sub SetShaderValue(Shader shader, int uniformLoc, const Sub *value, int uniformT
 '' Set shader uniform value vector
 sub SetShaderValueV(Shader shader, int uniformLoc, const Sub *value, int uniformType, count as Long)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     glUseProgram(shader.id)
 
     switch (uniformType)
     {
-        case UNIFORM_FLOAT: glUniform1fv(uniformLoc, count, (float *)value) break
-        case UNIFORM_VEC2: glUniform2fv(uniformLoc, count, (float *)value) break
-        case UNIFORM_VEC3: glUniform3fv(uniformLoc, count, (float *)value) break
-        case UNIFORM_VEC4: glUniform4fv(uniformLoc, count, (float *)value) break
-        case UNIFORM_INT: glUniform1iv(uniformLoc, count, (int *)value) break
-        case UNIFORM_IVEC2: glUniform2iv(uniformLoc, count, (int *)value) break
-        case UNIFORM_IVEC3: glUniform3iv(uniformLoc, count, (int *)value) break
-        case UNIFORM_IVEC4: glUniform4iv(uniformLoc, count, (int *)value) break
-        case UNIFORM_SAMPLER2D: glUniform1iv(uniformLoc, count, (int *)value) break
-        default: TRACELOG(LOG_WARNING, "SHADER: [ID %i] Failed to set uniform, data type not recognized", shader.id)
+        case UNIFORM_FLOAT: glUniform1fv(uniformLoc, count, (Single *)value)  
+        case UNIFORM_VEC2: glUniform2fv(uniformLoc, count, (Single *)value)  
+        case UNIFORM_VEC3: glUniform3fv(uniformLoc, count, (Single *)value)  
+        case UNIFORM_VEC4: glUniform4fv(uniformLoc, count, (Single *)value)  
+        case UNIFORM_INT: glUniform1iv(uniformLoc, count, (int *)value)  
+        case UNIFORM_IVEC2: glUniform2iv(uniformLoc, count, (int *)value)  
+        case UNIFORM_IVEC3: glUniform3iv(uniformLoc, count, (int *)value)  
+        case UNIFORM_IVEC4: glUniform4iv(uniformLoc, count, (int *)value)  
+        case UNIFORM_SAMPLER2D: glUniform1iv(uniformLoc, count, (int *)value)  
+        case Else: TRACELOG(LOG_WARNING, "SHADER: [ID %i] Failed to set uniform, data type not recognized", shader.id)
     }
 
     ''glUseProgram(0)      '' Asub reseting current shader program, in case other uniforms are set
@@ -3383,7 +3469,7 @@ sub SetShaderValueV(Shader shader, int uniformLoc, const Sub *value, int uniform
 '' Set shader uniform value (matrix 4x4)
 Sub SetShaderValueMatrix(Shader shader, int uniformLoc, Matrix mat)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     glUseProgram(shader.id)
 
     glUniformMatrix4fv(uniformLoc, 1, false, MatrixToFloat(mat))
@@ -3395,7 +3481,7 @@ Sub SetShaderValueMatrix(Shader shader, int uniformLoc, Matrix mat)
 '' Set shader uniform value for texture
 Sub SetShaderValueTexture(Shader shader, int uniformLoc, texture as Texture2D)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     glUseProgram(shader.id)
 
     '' Check if texture is already active
@@ -3409,7 +3495,7 @@ Sub SetShaderValueTexture(Shader shader, int uniformLoc, texture as Texture2D)
         {
             glUniform1i(uniformLoc, 1 + i)             '' Activate new texture unit
             RLGL.State.activeTextureId[i] = texture.id '' Save texture id for binding on drawing
-            break
+             
         }
     }
 
@@ -3420,7 +3506,7 @@ Sub SetShaderValueTexture(Shader shader, int uniformLoc, texture as Texture2D)
 '' Set a custom projection matrix (replaces internal projection matrix)
 Sub SetMatrixProjection(Matrix projection)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     RLGL.State.projection = projection
 #endif
 }
@@ -3428,7 +3514,7 @@ Sub SetMatrixProjection(Matrix projection)
 '' Return internal projection matrix
 Matrix GetMatrixProjection() {
 #if defined(GRAPHICS_API_OPENGL_11)
-    float mat[16]
+    Single mat[16]
     glGetFloatv(GL_PROJECTION_MATRIX,mat)
     Matrix m
     m.m0  = mat[0]     m.m1  = mat[1]     m.m2  = mat[2]     m.m3  = mat[3]
@@ -3445,7 +3531,7 @@ Matrix GetMatrixProjection() {
 '' Set a custom modelview matrix (replaces internal modelview matrix)
 Sub SetMatrixModelview(Matrix view)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     RLGL.State.modelview = View
 #endif
 }
@@ -3455,7 +3541,7 @@ Matrix GetMatrixModelview()
 {
     Matrix matrix = MatrixIdentity()
 #if defined(GRAPHICS_API_OPENGL_11)
-    float mat[16]
+    Single mat[16]
     glGetFloatv(GL_MODELVIEW_MATRIX, mat)
     matrix.m0  = mat[0]     matrix.m1  = mat[1]     matrix.m2  = mat[2]     matrix.m3  = mat[3]
     matrix.m4  = mat[4]     matrix.m5  = mat[5]     matrix.m6  = mat[6]     matrix.m7  = mat[7]
@@ -3471,7 +3557,7 @@ Matrix GetMatrixModelview()
 TextureCubemap GenTextureCubemap(Shader shader, Texture2D panorama, size as Long, format as Long)
 {
     TextureCubemap cubemap = { 0 }
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     rlDisableBackfaceCulling()     '' Disable backface culling to render inside the cube
 
     '' STEP 1: Setup framebuffer
@@ -3559,7 +3645,7 @@ TextureCubemap GenTextureIrradiance(Shader shader, TextureCubemap cubemap, size 
 {
     TextureCubemap irradiance = { 0 }
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     rlDisableBackfaceCulling()     '' Disable backface culling to render inside the cube
 
     '' STEP 1: Setup framebuffer
@@ -3632,7 +3718,7 @@ TextureCubemap GenTexturePrefilter(Shader shader, TextureCubemap cubemap, size a
 {
     TextureCubemap prefilter = { 0 }
 
-#if defined(GRAPHICS_API_OPENGL_33) '' || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) '' orelse defined(GRAPHICS_API_OPENGL_ES2)
     rlDisableBackfaceCulling()     '' Disable backface culling to render inside the cube
 
     '' STEP 1: Setup framebuffer
@@ -3682,15 +3768,15 @@ TextureCubemap GenTexturePrefilter(Shader shader, TextureCubemap cubemap, size a
     for (int mip = 0 mip < MAX_MIPMAP_LEVELS mip++)
     {
         '' Resize framebuffer according to mip-level size.
-        unsigned int mipWidth  = size*(int)powf(0.5f, (float)mip)
-        unsigned int mipHeight = size*(int)powf(0.5f, (float)mip)
+        unsigned int mipWidth  = size*(int)powf(0.5f, (Single)mip)
+        unsigned int mipHeight = size*(int)powf(0.5f, (Single)mip)
 
         rlViewport(0, 0, mipWidth, mipHeight)
 
         glBindRenderbuffer(GL_RENDERBUFFER, rbo)
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight)
 
-        float roughness = (float)mip/(float)(MAX_MIPMAP_LEVELS - 1)
+        single roughness = (single)mip/(Single)(MAX_MIPMAP_LEVELS - 1)
         glUniform1f(roughnessLoc, roughness)
 
         for (int i = 0 i < 6 i++)
@@ -3731,7 +3817,7 @@ TextureCubemap GenTexturePrefilter(Shader shader, TextureCubemap cubemap, size a
 Texture2D GenTextureBRDF(Shader shader, size as Long)
 {
     Texture2D brdf = { 0 }
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' STEP 1: Setup framebuffer
     ''------------------------------------------------------------------------------------------
     unsigned int rbo = rlLoadTextureDepth(size, size, true)
@@ -3778,20 +3864,20 @@ Texture2D GenTextureBRDF(Shader shader, size as Long)
 '' NOTE: Only 3 blending modes supported, default blend mode is alpha
 Sub BeginBlendMode(mode As long)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     if (RLGL.State.currentBlendMode != mode)
     {
         DrawRenderBatch(RLGL.currentBatch)
 
         switch (mode)
         {
-            case BLEND_ALPHA: glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) glBlendEquation(GL_FUNC_ADD) break
-            case BLEND_ADDITIVE: glBlendFunc(GL_SRC_ALPHA, GL_ONE) glBlendEquation(GL_FUNC_ADD) break
-            case BLEND_MULTIPLIED: glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA) glBlendEquation(GL_FUNC_ADD) break
-            case BLEND_ADD_COLORS: glBlendFunc(GL_ONE, GL_ONE) glBlendEquation(GL_FUNC_ADD) break
-            case BLEND_SUBTRACT_COLORS: glBlendFunc(GL_ONE, GL_ONE) glBlendEquation(GL_FUNC_SUBTRACT) break
-            case BLEND_CUSTOM: glBlendFunc(RLGL.State.glBlendSrcFactor, RLGL.State.glBlendDstFactor) glBlendEquation(RLGL.State.glBlendEquation) break
-            default: break
+            case BLEND_ALPHA: glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) glBlendEquation(GL_FUNC_ADD)  
+            case BLEND_ADDITIVE: glBlendFunc(GL_SRC_ALPHA, GL_ONE) glBlendEquation(GL_FUNC_ADD)  
+            case BLEND_MULTIPLIED: glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA) glBlendEquation(GL_FUNC_ADD)  
+            case BLEND_ADD_COLORS: glBlendFunc(GL_ONE, GL_ONE) glBlendEquation(GL_FUNC_ADD)  
+            case BLEND_SUBTRACT_COLORS: glBlendFunc(GL_ONE, GL_ONE) glBlendEquation(GL_FUNC_SUBTRACT)  
+            case BLEND_CUSTOM: glBlendFunc(RLGL.State.glBlendSrcFactor, RLGL.State.glBlendDstFactor) glBlendEquation(RLGL.State.glBlendEquation)  
+            case Else:  
         }
 
         RLGL.State.currentBlendMode = mode
@@ -3799,7 +3885,7 @@ Sub BeginBlendMode(mode As long)
 #endif
 }
 
-'' End blending mode (reset to default: alpha blending)
+'' End blending mode (reset to case else: alpha blending)
 sub EndBlendMode()
 {
     BeginBlendMode(BLEND_ALPHA)
@@ -3810,7 +3896,7 @@ sub EndBlendMode()
 '' NOTE: It modifies the global variable: RLGL.Vr.stereoFboId
 sub InitVrSimulator()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' Initialize framebuffer and textures for stereo rendering
     '' NOTE: Screen size should match HMD aspect ratio
     RLGL.Vr.stereoFboId = rlLoadFramebuffer(RLGL.State.framebufferWidth, RLGL.State.framebufferHeight)
@@ -3839,7 +3925,7 @@ Sub UpdateVrTracking(Camera *camera)
 '' Close VR simulator for current device
 sub CloseVrSimulator()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     if (RLGL.Vr.simulatorReady)
     {
         rlUnloadTexture(RLGL.Vr.stereoTexId)       '' Unload color texture
@@ -3851,7 +3937,7 @@ sub CloseVrSimulator()
 '' Set stereo rendering configuration parameters
 Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     '' Reset RLGL.Vr.config for a new values assignment
     memset(&RLGL.Vr.config, 0, sizeof(RLGL.Vr.config))
 
@@ -3859,20 +3945,20 @@ Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
     RLGL.Vr.config.distortionShader = distortion
 
     '' Compute aspect ratio
-    float aspect = ((float)hmd.hResolution*0.5f)/(float)hmd.vResolution
+    single aspect = ((single)hmd.hResolution*0.5f)/(Single)hmd.vResolution
 
     '' Compute lens parameters
-    float lensShift = (hmd.hScreenSize*0.25f - hmd.lensSeparationDistance*0.5f)/hmd.hScreenSize
-    float leftLensCenter[2] = { 0.25f + lensShift, 0.5f }
-    float rightLensCenter[2] = { 0.75f - lensShift, 0.5f }
-    float leftScreenCenter[2] = { 0.25f, 0.5f }
-    float rightScreenCenter[2] = { 0.75f, 0.5f }
+    Single lensShift = (hmd.hScreenSize*0.25f - hmd.lensSeparationDistance*0.5f)/hmd.hScreenSize
+    Single leftLensCenter[2] = { 0.25f + lensShift, 0.5f }
+    Single rightLensCenter[2] = { 0.75f - lensShift, 0.5f }
+    Single leftScreenCenter[2] = { 0.25f, 0.5f }
+    Single rightScreenCenter[2] = { 0.75f, 0.5f }
 
     '' Compute distortion scale parameters
     '' NOTE: To get lens max radius, lensShift must be normalized to [-1..1]
-    float lensRadius = fabsf(-1.0f - 4.0f*lensShift)
-    float lensRadiusSq = lensRadius*lensRadius
-    float distortionScale = hmd.lensDistortionValues[0] +
+    Single lensRadius = fabsf(-1.0f - 4.0f*lensShift)
+    Single lensRadiusSq = lensRadius*lensRadius
+    Single distortionScale = hmd.lensDistortionValues[0] +
                             hmd.lensDistortionValues[1]*lensRadiusSq +
                             hmd.lensDistortionValues[2]*lensRadiusSq*lensRadiusSq +
                             hmd.lensDistortionValues[3]*lensRadiusSq*lensRadiusSq*lensRadiusSq
@@ -3880,10 +3966,10 @@ Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
     TRACELOGD("RLGL: VR device configuration:")
     TRACELOGD("    > Distortion Scale: %f", distortionScale)
 
-    float normScreenWidth = 0.5f
-    float normScreenHeight = 1.0f
-    float scaleIn[2] = { 2.0f/normScreenWidth, 2.0f/normScreenHeight/aspect }
-    float scale[2] = { normScreenWidth*0.5f/distortionScale, normScreenHeight*0.5f*aspect/distortionScale }
+    Single normScreenWidth = 0.5f
+    Single normScreenHeight = 1.0f
+    Single scaleIn[2] = { 2.0f/normScreenWidth, 2.0f/normScreenHeight/aspect }
+    Single scale[2] = { normScreenWidth*0.5f/distortionScale, normScreenHeight*0.5f*aspect/distortionScale }
 
     TRACELOGD("    > Distortion Shader: LeftLensCenter = { %f, %f }", leftLensCenter[0], leftLensCenter[1])
     TRACELOGD("    > Distortion Shader: RightLensCenter = { %f, %f }", rightLensCenter[0], rightLensCenter[1])
@@ -3892,11 +3978,11 @@ Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
 
     '' Fovy is normally computed with: 2*atan2f(hmd.vScreenSize, 2*hmd.eyeToScreenDistance)
     '' ...but with lens distortion it is increased (see Oculus SDK Documentation)
-    ''float fovy = 2.0f*atan2f(hmd.vScreenSize*0.5f*distortionScale, hmd.eyeToScreenDistance)     '' Really need distortionScale?
-    float fovy = 2.0f*(float)atan2f(hmd.vScreenSize*0.5f, hmd.eyeToScreenDistance)
+    ''single fovy = 2.0f*atan2f(hmd.vScreenSize*0.5f*distortionScale, hmd.eyeToScreenDistance)     '' Really need distortionScale?
+    single fovy = 2.0f*(Single)atan2f(hmd.vScreenSize*0.5f, hmd.eyeToScreenDistance)
 
     '' Compute camera projection matrices
-    float projOffset = 4.0f*lensShift      '' Scaled to projection space coordinates [-1..1]
+    Single projOffset = 4.0f*lensShift      '' Scaled to projection space coordinates [-1..1]
     Matrix proj = MatrixPerspective(fovy, aspect, RL_CULL_DISTANCE_NEAR, RL_CULL_DISTANCE_FAR)
     RLGL.Vr.config.eyesProjection[0] = MatrixMultiply(proj, MatrixTranslate(projOffset, 0.0f, 0.0f))
     RLGL.Vr.config.eyesProjection[1] = MatrixMultiply(proj, MatrixTranslate(-projOffset, 0.0f, 0.0f))
@@ -3936,7 +4022,7 @@ Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
 '' Detect if VR simulator is running
 bool IsVrSimulatorReady()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     return RLGL.Vr.simulatorReady
 #else
     return FALSE
@@ -3946,7 +4032,7 @@ bool IsVrSimulatorReady()
 '' Enable/Disable VR experience (device or simulator)
 sub ToggleVrMode()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     RLGL.Vr.simulatorReady = !RLGL.Vr.simulatorReady
 
     if (!RLGL.Vr.simulatorReady)
@@ -3965,7 +4051,7 @@ sub ToggleVrMode()
 '' Begin VR drawing configuration
 sub BeginVrDrawing()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     if (RLGL.Vr.simulatorReady)
     {
         rlEnableFramebuffer(RLGL.Vr.stereoFboId)   '' Setup framebuffer for stereo rendering
@@ -3982,7 +4068,7 @@ sub BeginVrDrawing()
 '' End VR drawing process (and desktop mirror)
 sub EndVrDrawing()
 {
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     if (RLGL.Vr.simulatorReady)
     {
         RLGL.Vr.stereoRender = FALSE   '' Disable stereo render
@@ -4018,15 +4104,15 @@ sub EndVrDrawing()
 
                 '' Bottom-right corner for texture and quad
                 rlTexCoord2f(0.0f, 0.0f)
-                rlVertex2f(0.0f, (float)RLGL.State.framebufferHeight)
+                rlVertex2f(0.0f, (Single)RLGL.State.framebufferHeight)
 
                 '' Top-right corner for texture and quad
                 rlTexCoord2f(1.0f, 0.0f)
-                rlVertex2f((float)RLGL.State.framebufferWidth, (float)RLGL.State.framebufferHeight)
+                rlVertex2f((single)RLGL.State.framebufferWidth, (Single)RLGL.State.framebufferHeight)
 
                 '' Top-left corner for texture and quad
                 rlTexCoord2f(1.0f, 1.0f)
-                rlVertex2f((float)RLGL.State.framebufferWidth, 0.0f)
+                rlVertex2f((Single)RLGL.State.framebufferWidth, 0.0f)
             rlEnd()
         rlPopMatrix()
 
@@ -4053,7 +4139,7 @@ sub EndVrDrawing()
 '' Module specific Functions Definition
 ''----------------------------------------------------------------------------------
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
 '' Compile custom shader and return shader id
 static unsigned int CompileShader(const char *shaderStr, int type)
 {
@@ -4094,7 +4180,7 @@ static unsigned int LoadShaderProgram(unsigned int vShaderId, unsigned int fShad
 {
     unsigned int program = 0
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
     GLint success = 0
     program = glCreateProgram()
 
@@ -4165,7 +4251,7 @@ static Shader LoadShaderDefault()
 #ElseIf defined(GRAPHICS_API_OPENGL_ES2)
     "#version 100                       \n"
 #endif
-#if defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_21)
+#if defined(GRAPHICS_API_OPENGL_ES2) OrElse defined(GRAPHICS_API_OPENGL_21)
     "attribute vec3 vertexPosition     \n"
     "attribute vec2 vertexTexCoord     \n"
     "attribute vec4 vertexColor        \n"
@@ -4193,9 +4279,9 @@ static Shader LoadShaderDefault()
     "#version 120                       \n"
 #ElseIf defined(GRAPHICS_API_OPENGL_ES2)
     "#version 100                       \n"
-    "precision mediump float           \n"     '' precision required for OpenGL ES2 (WebGL)
+    "precision mediump single           \n"     '' precision required for OpenGL ES2 (WebGL)
 #endif
-#if defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_21)
+#if defined(GRAPHICS_API_OPENGL_ES2) OrElse defined(GRAPHICS_API_OPENGL_21)
     "varying vec2 fragTexCoord         \n"
     "varying vec4 fragColor            \n"
 #ElseIf defined(GRAPHICS_API_OPENGL_33)
@@ -4208,7 +4294,7 @@ static Shader LoadShaderDefault()
     "uniform vec4 colDiffuse           \n"
     "sub main()                        \n"
     "{                                  \n"
-#if defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_21)
+#if defined(GRAPHICS_API_OPENGL_ES2) OrElse defined(GRAPHICS_API_OPENGL_21)
     "    vec4 texelColor = texture2D(texture0, fragTexCoord) \n" '' NOTE: texture2D() is deprecated on OpenGL 3.3 and ES 3.0
     "    gl_FragColor = texelColor*colDiffuse*fragColor      \n"
 #ElseIf defined(GRAPHICS_API_OPENGL_33)
@@ -4306,9 +4392,9 @@ static RenderBatch LoadRenderBatch(int numBuffers, buffer As longElements)
     {
         batch.vertexBuffer[i].elementsCount = bufferElements
 
-        batch.vertexBuffer[i].vertices = (float *)RL_MALLOC(bufferElements*3*4*sizeof(float))        '' 3 float by vertex, 4 vertex by quad
-        batch.vertexBuffer[i].texcoords = (float *)RL_MALLOC(bufferElements*2*4*sizeof(float))       '' 2 float by texcoord, 4 texcoord by quad
-        batch.vertexBuffer[i].colors = (unsigned char *)RL_MALLOC(bufferElements*4*4*sizeof(unsigned char))   '' 4 float by color, 4 colors by quad
+        batch.vertexBuffer[i].vertices = (single *)RL_MALLOC(bufferElements*3*4*sizeof(single))        '' 3 single by vertex, 4 vertex by quad
+        batch.vertexBuffer[i].texcoords = (single *)RL_MALLOC(bufferElements*2*4*sizeof(single))       '' 2 single by texcoord, 4 texcoord by quad
+        batch.vertexBuffer[i].colors = (unsigned char *)RL_MALLOC(bufferElements*4*4*sizeof(unsigned char))   '' 4 single by color, 4 colors by quad
 #if defined(GRAPHICS_API_OPENGL_33)
         batch.vertexBuffer[i].indices = (unsigned int *)RL_MALLOC(bufferElements*6*sizeof(unsigned int))      '' 6 int by quad (indices)
 #ElseIf defined(GRAPHICS_API_OPENGL_ES2)
@@ -4357,14 +4443,14 @@ static RenderBatch LoadRenderBatch(int numBuffers, buffer As longElements)
         '' Vertex position buffer (shader-location = 0)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[0])
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[0])
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*3*4*sizeof(float), batch.vertexBuffer[i].vertices, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*3*4*sizeof(Single), batch.vertexBuffer[i].vertices, GL_DYNAMIC_DRAW)
         glEnableVertexAttribArray(RLGL.State.currentShader.locs[LOC_VERTEX_POSITION])
         glVertexAttribPointer(RLGL.State.currentShader.locs[LOC_VERTEX_POSITION], 3, GL_FLOAT, 0, 0, 0)
 
         '' Vertex texcoord buffer (shader-location = 1)
         glGenBuffers(1, &batch.vertexBuffer[i].vboId[1])
         glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[1])
-        glBufferData(GL_ARRAY_BUFFER, bufferElements*2*4*sizeof(float), batch.vertexBuffer[i].texcoords, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, bufferElements*2*4*sizeof(Single), batch.vertexBuffer[i].texcoords, GL_DYNAMIC_DRAW)
         glEnableVertexAttribArray(RLGL.State.currentShader.locs[LOC_VERTEX_TEXCOORD01])
         glVertexAttribPointer(RLGL.State.currentShader.locs[LOC_VERTEX_TEXCOORD01], 2, GL_FLOAT, 0, 0, 0)
 
@@ -4430,18 +4516,18 @@ static Sub DrawRenderBatch(RenderBatch *batch)
 
         '' Vertex positions buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[0])
-        glBufferSubData(GL_ARRAY_BUFFER, 0, batch->vertexBuffer[batch->currentBuffer].vCounter*3*sizeof(float), batch->vertexBuffer[batch->currentBuffer].vertices)
-        ''glBufferData(GL_ARRAY_BUFFER, sizeof(float)*3*4*batch->vertexBuffer[batch->currentBuffer].elementsCount, batch->vertexBuffer[batch->currentBuffer].vertices, GL_DYNAMIC_DRAW)  '' Update all buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, batch->vertexBuffer[batch->currentBuffer].vCounter*3*sizeof(Single), batch->vertexBuffer[batch->currentBuffer].vertices)
+        ''glBufferData(GL_ARRAY_BUFFER, sizeof(single)*3*4*batch->vertexBuffer[batch->currentBuffer].elementsCount, batch->vertexBuffer[batch->currentBuffer].vertices, GL_DYNAMIC_DRAW)  '' Update all buffer
 
         '' Texture coordinates buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[1])
-        glBufferSubData(GL_ARRAY_BUFFER, 0, batch->vertexBuffer[batch->currentBuffer].vCounter*2*sizeof(float), batch->vertexBuffer[batch->currentBuffer].texcoords)
-        ''glBufferData(GL_ARRAY_BUFFER, sizeof(float)*2*4*batch->vertexBuffer[batch->currentBuffer].elementsCount, batch->vertexBuffer[batch->currentBuffer].texcoords, GL_DYNAMIC_DRAW) '' Update all buffer
+        glBufferSubData(GL_ARRAY_BUFFER, 0, batch->vertexBuffer[batch->currentBuffer].vCounter*2*sizeof(Single), batch->vertexBuffer[batch->currentBuffer].texcoords)
+        ''glBufferData(GL_ARRAY_BUFFER, sizeof(single)*2*4*batch->vertexBuffer[batch->currentBuffer].elementsCount, batch->vertexBuffer[batch->currentBuffer].texcoords, GL_DYNAMIC_DRAW) '' Update all buffer
 
         '' Colors buffer
         glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[2])
         glBufferSubData(GL_ARRAY_BUFFER, 0, batch->vertexBuffer[batch->currentBuffer].vCounter*4*sizeof(unsigned char), batch->vertexBuffer[batch->currentBuffer].colors)
-        ''glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*4*batch->vertexBuffer[batch->currentBuffer].elementsCount, batch->vertexBuffer[batch->currentBuffer].colors, GL_DYNAMIC_DRAW)    '' Update all buffer
+        ''glBufferData(GL_ARRAY_BUFFER, sizeof(single)*4*4*batch->vertexBuffer[batch->currentBuffer].elementsCount, batch->vertexBuffer[batch->currentBuffer].colors, GL_DYNAMIC_DRAW)    '' Update all buffer
 
         '' NOTE: glMapBuffer() causes sync issue.
         '' If GPU is working with this buffer, glMapBuffer() will wait(stall) until GPU to finish its job.
@@ -4451,7 +4537,7 @@ static Sub DrawRenderBatch(RenderBatch *batch)
 
         '' Another option: map the buffer object into client's memory
         '' Probably this code could be moved somewhere else...
-        '' batch->vertexBuffer[batch->currentBuffer].vertices = (float *)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)
+        '' batch->vertexBuffer[batch->currentBuffer].vertices = (single *)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)
         '' if (batch->vertexBuffer[batch->currentBuffer].vertices)
         '' {
             '' Update vertex data
@@ -4533,7 +4619,7 @@ static Sub DrawRenderBatch(RenderBatch *batch)
                 '' Bind current draw call texture, activated as GL_TEXTURE0 and binded to sampler2D texture0 by default
                 glBindTexture(GL_TEXTURE_2D, batch->draws[i].textureId)
 
-                if ((batch->draws[i].mode == RL_LINES) || (batch->draws[i].mode == RL_TRIANGLES)) glDrawArrays(batch->draws[i].mode, vertexOffset, batch->draws[i].vertexCount)
+                if ((batch->draws[i].mode == RL_LINES) OrElse (batch->draws[i].mode == RL_TRIANGLES)) glDrawArrays(batch->draws[i].mode, vertexOffset, batch->draws[i].vertexCount)
                 else
                 {
 #if defined(GRAPHICS_API_OPENGL_33)
@@ -4654,7 +4740,7 @@ static sub GenDrawQuad()
     unsigned int quadVAO = 0
     unsigned int quadVBO = 0
 
-    float vertices[] = {
+    Single vertices[] = {
          '' Positions         Texcoords
         -1.0f,  1.0f, 0.0f,   0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f,   0.0f, 0.0f,
@@ -4673,9 +4759,9 @@ static sub GenDrawQuad()
 
     '' Bind vertex attributes (position, texcoords)
     glEnableVertexAttribArray(0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (Sub *)0) '' Positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(Single), (Sub *)0) '' Positions
     glEnableVertexAttribArray(1)
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (Sub *)(3*sizeof(float))) '' Texcoords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(single), (Sub *)(3*sizeof(Single))) '' Texcoords
 
     '' Draw quad
     glBindVertexArray(quadVAO)
@@ -4693,7 +4779,7 @@ static sub GenDrawCube()
     unsigned int cubeVAO = 0
     unsigned int cubeVBO = 0
 
-    float vertices[] = {
+    Single vertices[] = {
          '' Positions          Normals               Texcoords
         -1.0f, -1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   0.0f, 0.0f,
          1.0f,  1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   1.0f, 1.0f,
@@ -4745,11 +4831,11 @@ static sub GenDrawCube()
     '' Bind vertex attributes (position, normals, texcoords)
     glBindVertexArray(cubeVAO)
     glEnableVertexAttribArray(0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (Sub *)0) '' Positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(Single), (Sub *)0) '' Positions
     glEnableVertexAttribArray(1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (Sub *)(3*sizeof(float))) '' Normals
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(single), (Sub *)(3*sizeof(Single))) '' Normals
     glEnableVertexAttribArray(2)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (Sub *)(6*sizeof(float))) '' Texcoords
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(single), (Sub *)(6*sizeof(Single))) '' Texcoords
     glBindBuffer(GL_ARRAY_BUFFER, 0)
     glBindVertexArray(0)
 
@@ -4784,7 +4870,7 @@ static sub SetStereoView(int eye, Matrix matProjection, Matrix matModelView)
 }
 #endif  '' SUPPORT_VR_SIMULATOR
 
-#endif  '' GRAPHICS_API_OPENGL_33 || GRAPHICS_API_OPENGL_ES2
+#endif  '' GRAPHICS_API_OPENGL_33 orelse GRAPHICS_API_OPENGL_ES2
 
 #if defined(GRAPHICS_API_OPENGL_11)
 '' Mipmaps data is generated after image data
@@ -4968,28 +5054,28 @@ int GetPixelDataSize(width as Long, height as Long, format as Long)
 
     switch (format)
     {
-        case UNCOMPRESSED_GRAYSCALE: bpp = 8 break
+        case UNCOMPRESSED_GRAYSCALE: bpp = 8  
         case UNCOMPRESSED_GRAY_ALPHA:
         case UNCOMPRESSED_R5G6B5:
         case UNCOMPRESSED_R5G5B5A1:
-        case UNCOMPRESSED_R4G4B4A4: bpp = 16 break
-        case UNCOMPRESSED_R8G8B8A8: bpp = 32 break
-        case UNCOMPRESSED_R8G8B8: bpp = 24 break
-        case UNCOMPRESSED_R32: bpp = 32 break
-        case UNCOMPRESSED_R32G32B32: bpp = 32*3 break
-        case UNCOMPRESSED_R32G32B32A32: bpp = 32*4 break
+        case UNCOMPRESSED_R4G4B4A4: bpp = 16  
+        case UNCOMPRESSED_R8G8B8A8: bpp = 32  
+        case UNCOMPRESSED_R8G8B8: bpp = 24  
+        case UNCOMPRESSED_R32: bpp = 32  
+        case UNCOMPRESSED_R32G32B32: bpp = 32*3  
+        case UNCOMPRESSED_R32G32B32A32: bpp = 32*4  
         case COMPRESSED_DXT1_RGB:
         case COMPRESSED_DXT1_RGBA:
         case COMPRESSED_ETC1_RGB:
         case COMPRESSED_ETC2_RGB:
         case COMPRESSED_PVRT_RGB:
-        case COMPRESSED_PVRT_RGBA: bpp = 4 break
+        case COMPRESSED_PVRT_RGBA: bpp = 4  
         case COMPRESSED_DXT3_RGBA:
         case COMPRESSED_DXT5_RGBA:
         case COMPRESSED_ETC2_EAC_RGBA:
-        case COMPRESSED_ASTC_4x4_RGBA: bpp = 8 break
-        case COMPRESSED_ASTC_8x8_RGBA: bpp = 2 break
-        default: break
+        case COMPRESSED_ASTC_4x4_RGBA: bpp = 8  
+        case COMPRESSED_ASTC_8x8_RGBA: bpp = 2  
+        case Else:  
     }
 
     dataSize = width*height*bpp/8  '' Total data size in bytes
