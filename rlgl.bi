@@ -2818,26 +2818,29 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
     '' NOTE: On OpenGL 1.1 we use Vertex Arrays to draw model
     glEnableClientState(GL_VERTEX_ARRAY)                   '' Enable vertex array
     glEnableClientState(GL_TEXTURE_COORD_ARRAY)            '' Enable texture coords array
-    if (mesh.normals != NULL) glEnableClientState(GL_NORMAL_ARRAY)     '' Enable normals array
-    if (mesh.colors != NULL) glEnableClientState(GL_COLOR_ARRAY)       '' Enable colors array
+    if (mesh.normals <> NULL) Then glEnableClientState(GL_NORMAL_ARRAY)     '' Enable normals array
+    if (mesh.colors <> NULL) Then glEnableClientState(GL_COLOR_ARRAY)       '' Enable colors array
 
     glVertexPointer(3, GL_FLOAT, 0, mesh.vertices)         '' Pointer to vertex coords array
     glTexCoordPointer(2, GL_FLOAT, 0, mesh.texcoords)      '' Pointer to texture coords array
-    if (mesh.normals != NULL) glNormalPointer(GL_FLOAT, 0, mesh.normals)           '' Pointer to normals array
-    if (mesh.colors != NULL) glColorPointer(4, GL_UNSIGNED_BYTE, 0, mesh.colors)   '' Pointer to colors array
+    if (mesh.normals <> NULL) Then glNormalPointer(GL_FLOAT, 0, mesh.normals)           '' Pointer to normals array
+    if (mesh.colors <> NULL) Then glColorPointer(4, GL_UNSIGNED_BYTE, 0, mesh.colors)   '' Pointer to colors array
 
     rlPushMatrix()
         rlMultMatrixf(MatrixToFloat(transform))
         rlColor4ub(material.maps[MAP_DIFFUSE].color.r, material.maps[MAP_DIFFUSE].color.g, material.maps[MAP_DIFFUSE].color.b, material.maps[MAP_DIFFUSE].color.a)
 
-        if (mesh.indices != NULL) glDrawElements(GL_TRIANGLES, mesh.triangleCount*3, GL_UNSIGNED_SHORT, mesh.indices)
-        else glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount)
+        if (mesh.indices <> NULL) Then
+        	glDrawElements(GL_TRIANGLES, mesh.triangleCount*3, GL_UNSIGNED_SHORT, mesh.indices)
+        else 
+        glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount)
+        EndIf
     rlPopMatrix()
 
     glDisableClientState(GL_VERTEX_ARRAY)                  '' Disable vertex array
     glDisableClientState(GL_TEXTURE_COORD_ARRAY)           '' Disable texture coords array
-    if (mesh.normals != NULL) glDisableClientState(GL_NORMAL_ARRAY)    '' Disable normals array
-    if (mesh.colors != NULL) glDisableClientState(GL_NORMAL_ARRAY)     '' Disable colors array
+    if (mesh.normals <> NULL) Then glDisableClientState(GL_NORMAL_ARRAY)    '' Disable normals array
+    if (mesh.colors <> NULL) Then glDisableClientState(GL_NORMAL_ARRAY)     '' Disable colors array
 
     glDisable(GL_TEXTURE_2D)
     glBindTexture(GL_TEXTURE_2D, 0)
@@ -2850,29 +2853,29 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
     '' Matrices and other values required by shader
     ''-----------------------------------------------------
     '' Calculate and send to shader model matrix (used by PBR shader)
-    if (material.shader.locs[LOC_MATRIX_MODEL] != -1) SetShaderValueMatrix(material.shader, material.shader.locs[LOC_MATRIX_MODEL], transform)
+    if (material.shader.locs(LOC_MATRIX_MODEL) <> -1) Then SetShaderValueMatrix(material.shader, material.shader.locs(LOC_MATRIX_MODEL), transform)
 
     '' Upload to shader material.colDiffuse
-    if (material.shader.locs[LOC_COLOR_DIFFUSE] != -1)
-        glUniform4f(material.shader.locs[LOC_COLOR_DIFFUSE], (Single)material.maps[MAP_DIFFUSE].color.r/255.0f,
-                                                           (Single)material.maps[MAP_DIFFUSE].color.g/255.0f,
-                                                           (Single)material.maps[MAP_DIFFUSE].color.b/255.0f,
-                                                           (Single)material.maps[MAP_DIFFUSE].color.a/255.0f)
-
+    if (material.shader.locs(LOC_COLOR_DIFFUSE) <> -1) Then
+        glUniform4f(material.shader.locs(LOC_COLOR_DIFFUSE), material.maps(MAP_DIFFUSE).color.r/255.0f,
+                                                           material.maps(MAP_DIFFUSE).color.g/255.0f,
+                                                           material.maps(MAP_DIFFUSE).color.b/255.0f,
+                                                           material.maps(MAP_DIFFUSE).color.a/255.0f)
+    EndIf
     '' Upload to shader material.colSpecular (if available)
-    if (material.shader.locs[LOC_COLOR_SPECULAR] != -1)
-        glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], (Single)material.maps[MAP_SPECULAR].color.r/255.0f,
-                                                               (Single)material.maps[MAP_SPECULAR].color.g/255.0f,
-                                                               (Single)material.maps[MAP_SPECULAR].color.b/255.0f,
-                                                               (Single)material.maps[MAP_SPECULAR].color.a/255.0f)
-
-    if (material.shader.locs[LOC_MATRIX_VIEW] != -1) SetShaderValueMatrix(material.shader, material.shader.locs[LOC_MATRIX_VIEW], RLGL.State.modelview)
-    if (material.shader.locs[LOC_MATRIX_PROJECTION] != -1) SetShaderValueMatrix(material.shader, material.shader.locs[LOC_MATRIX_PROJECTION], RLGL.State.projection)
+    if (material.shader.locs(LOC_COLOR_SPECULAR) <> -1) Then
+        glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], material.maps(MAP_SPECULAR).color.r/255.0f,
+                                                               material.maps(MAP_SPECULAR).color.g/255.0f,
+                                                               material.maps(MAP_SPECULAR).color.b/255.0f,
+                                                               material.maps(MAP_SPECULAR).color.a/255.0f)
+    EndIf
+    if (material.shader.locs(LOC_MATRIX_VIEW) <> -1) Then SetShaderValueMatrix(material.shader, material.shader.locs(LOC_MATRIX_VIEW), RLGL.State.modelview)
+    if (material.shader.locs(LOC_MATRIX_PROJECTION) <> -1) Then SetShaderValueMatrix(material.shader, material.shader.locs(LOC_MATRIX_PROJECTION), RLGL.State.projection)
 
     '' At this point the modelview matrix just contains the view matrix (camera)
     '' That's because BeginMode3D() sets it an no model-drawing function modifies it, all use rlPushMatrix() and rlPopMatrix()
-    Matrix matView = RLGL.State.modelview         '' View matrix (camera)
-    Matrix matProjection = RLGL.State.projection  '' Projection matrix (perspective)
+    Dim As Matrix matView = RLGL.State.modelview         '' View matrix (camera)
+    Dim As Matrix matProjection = RLGL.State.projection  '' Projection matrix (perspective)
 
     '' TODO: Consider possible transform matrices in the RLGL.State.stack
     '' Is this the right order? or should we start with the first stored matrix instead of the last one?
@@ -2880,119 +2883,118 @@ Sub rlDrawMesh(mesh as Mesh, material as Material, transform as Matrix)
     ''for (int i = RLGL.State.stackCounter i > 0 i--) matStackTransform = MatrixMultiply(RLGL.State.stack[i], matStackTransform)
 
     '' Transform to camera-space coordinates
-    Matrix matModelView = MatrixMultiply(transform, MatrixMultiply(RLGL.State.transform, matView))
+    Dim As Matrix matModelView = MatrixMultiply(transform, MatrixMultiply(RLGL.State.transform, matView))
     ''-----------------------------------------------------
 
     '' Bind active texture maps (if available)
-    for (int i = 0 i < MAX_MATERIAL_MAPS i++)
-    {
-        if (material.maps[i].texture.id > 0)
-        {
+    for i As long= 0 to MAX_MATERIAL_MAPS-1
+        if (material.maps(i).texture.id > 0)
             glActiveTexture(GL_TEXTURE0 + i)
-            if ((i == MAP_IRRADIANCE) orelse (i == MAP_PREFILTER) OrElse (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, material.maps[i].texture.id)
-            else glBindTexture(GL_TEXTURE_2D, material.maps[i].texture.id)
-
-            glUniform1i(material.shader.locs[LOC_MAP_DIFFUSE + i], i)
-        }
-    }
+            if ((i = MAP_IRRADIANCE) orelse (i = MAP_PREFILTER) OrElse (i = MAP_CUBEMAP)) Then
+            	glBindTexture(GL_TEXTURE_CUBE_MAP, material.maps(i).texture.id)
+            else 
+            glBindTexture(GL_TEXTURE_2D, material.maps(i).texture.id)
+				EndIf
+            glUniform1i(material.shader.locs(LOC_MAP_DIFFUSE + i), i)
+        EndIf
+    Next
 
     '' Bind vertex array objects (or VBOs)
-    if (RLGL.ExtSupported.vao) glBindVertexArray(mesh.vaoId)
+    if (RLGL.ExtSupported.vao) Then
+    	glBindVertexArray(mesh.vaoId)
     else
-    {
         '' Bind mesh VBO data: vertex position (shader-location = 0)
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[0])
-        glVertexAttribPointer(material.shader.locs[LOC_VERTEX_POSITION], 3, GL_FLOAT, 0, 0, 0)
-        glEnableVertexAttribArray(material.shader.locs[LOC_VERTEX_POSITION])
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId(0))
+        glVertexAttribPointer(material.shader.locs(LOC_VERTEX_POSITION), 3, GL_FLOAT, 0, 0, 0)
+        glEnableVertexAttribArray(material.shader.locs(LOC_VERTEX_POSITION))
 
         '' Bind mesh VBO data: vertex texcoords (shader-location = 1)
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[1])
-        glVertexAttribPointer(material.shader.locs[LOC_VERTEX_TEXCOORD01], 2, GL_FLOAT, 0, 0, 0)
-        glEnableVertexAttribArray(material.shader.locs[LOC_VERTEX_TEXCOORD01])
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId(1))
+        glVertexAttribPointer(material.shader.locs(LOC_VERTEX_TEXCOORD01), 2, GL_FLOAT, 0, 0, 0)
+        glEnableVertexAttribArray(material.shader.locs(LOC_VERTEX_TEXCOORD01))
 
         '' Bind mesh VBO data: vertex normals (shader-location = 2, if available)
-        if (material.shader.locs[LOC_VERTEX_NORMAL] != -1)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[2])
-            glVertexAttribPointer(material.shader.locs[LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0)
-            glEnableVertexAttribArray(material.shader.locs[LOC_VERTEX_NORMAL])
-        }
+        if (material.shader.locs(LOC_VERTEX_NORMAL) <> -1) then
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId(2))
+            glVertexAttribPointer(material.shader.locs(LOC_VERTEX_NORMAL), 3, GL_FLOAT, 0, 0, 0)
+            glEnableVertexAttribArray(material.shader.locs(LOC_VERTEX_NORMAL))
+        EndIf
 
         '' Bind mesh VBO data: vertex colors (shader-location = 3, if available)
-        if (material.shader.locs[LOC_VERTEX_COLOR] != -1)
-        {
-            if (mesh.vboId[3] != 0)
-            {
-                glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[3])
-                glVertexAttribPointer(material.shader.locs[LOC_VERTEX_COLOR], 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, 0)
-                glEnableVertexAttribArray(material.shader.locs[LOC_VERTEX_COLOR])
-            }
-            else
-            {
+        if (material.shader.locs(LOC_VERTEX_COLOR) <> -1) then
+            if (mesh.vboId(3) <> 0) Then
+                glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId(3))
+                glVertexAttribPointer(material.shader.locs(LOC_VERTEX_COLOR), 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, 0)
+                glEnableVertexAttribArray(material.shader.locs(LOC_VERTEX_COLOR))
+            Else
                 '' Set default value for unused attribute
                 '' NOTE: Required when using default shader and no VAO support
-                glVertexAttrib4f(material.shader.locs[LOC_VERTEX_COLOR], 1.0f, 1.0f, 1.0f, 1.0f)
-                glDisableVertexAttribArray(material.shader.locs[LOC_VERTEX_COLOR])
-            }
-        }
+                glVertexAttrib4f(material.shader.locs(LOC_VERTEX_COLOR), 1.0f, 1.0f, 1.0f, 1.0f)
+                glDisableVertexAttribArray(material.shader.locs(LOC_VERTEX_COLOR))
+            EndIf
+        EndIf
 
         '' Bind mesh VBO data: vertex tangents (shader-location = 4, if available)
-        if (material.shader.locs[LOC_VERTEX_TANGENT] != -1)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[4])
-            glVertexAttribPointer(material.shader.locs[LOC_VERTEX_TANGENT], 4, GL_FLOAT, 0, 0, 0)
-            glEnableVertexAttribArray(material.shader.locs[LOC_VERTEX_TANGENT])
-        }
+        if (material.shader.locs(LOC_VERTEX_TANGENT) <> -1) then
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId(4))
+            glVertexAttribPointer(material.shader.locs(LOC_VERTEX_TANGENT), 4, GL_FLOAT, 0, 0, 0)
+            glEnableVertexAttribArray(material.shader.locs(LOC_VERTEX_TANGENT))
+        EndIf
 
         '' Bind mesh VBO data: vertex texcoords2 (shader-location = 5, if available)
-        if (material.shader.locs[LOC_VERTEX_TEXCOORD02] != -1)
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId[5])
-            glVertexAttribPointer(material.shader.locs[LOC_VERTEX_TEXCOORD02], 2, GL_FLOAT, 0, 0, 0)
-            glEnableVertexAttribArray(material.shader.locs[LOC_VERTEX_TEXCOORD02])
-        }
+        if (material.shader.locs(LOC_VERTEX_TEXCOORD02) <> -1) then
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.vboId(5))
+            glVertexAttribPointer(material.shader.locs(LOC_VERTEX_TEXCOORD02), 2, GL_FLOAT, 0, 0, 0)
+            glEnableVertexAttribArray(material.shader.locs(LOC_VERTEX_TEXCOORD02))
+        EndIf
 
-        if (mesh.indices != NULL) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboId[6])
-    }
+        if (mesh.indices <> NULL) Then glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vboId(6))
+    EndIf
 
-    int eyesCount = 1
+    Dim As Long eyesCount = 1
 #if defined(SUPPORT_VR_SIMULATOR)
-    if (RLGL.Vr.stereoRender) eyesCount = 2
+    if (RLGL.Vr.stereoRender) Then eyesCount = 2
 #endif
 
-    for (int eye = 0 eye < eyesCount eye++)
-    {
-        if (eyesCount == 1) RLGL.State.modelview = matModelView
+    for eye As long= 0 to eyesCount-1
+        if (eyesCount = 1) Then
+        	RLGL.State.modelview = matModelView
         #if defined(SUPPORT_VR_SIMULATOR)
-        else SetStereoView(eye, matProjection, matModelView)
+        else 
+        SetStereoView(eye, matProjection, matModelView)
         #endif
-
+        EndIf
         '' Calculate model-view-projection matrix (MVP)
-        Matrix matMVP = MatrixMultiply(RLGL.State.modelview, RLGL.State.projection)        '' Transform to screen-space coordinates
+        Dim As Matrix matMVP = MatrixMultiply(RLGL.State.modelview, RLGL.State.projection)        '' Transform to screen-space coordinates
 
         '' Send combined model-view-projection matrix to shader
-        glUniformMatrix4fv(material.shader.locs[LOC_MATRIX_MVP], 1, false, MatrixToFloat(matMVP))
+        glUniformMatrix4fv(material.shader.locs(LOC_MATRIX_MVP), 1, false, MatrixToFloat(matMVP))
 
         '' Draw call!
-        if (mesh.indices != NULL) glDrawElements(GL_TRIANGLES, mesh.triangleCount*3, GL_UNSIGNED_SHORT, 0) '' Indexed vertices draw
-        else glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount)
-    }
+        if (mesh.indices <> NULL) Then 
+        	glDrawElements(GL_TRIANGLES, mesh.triangleCount*3, GL_UNSIGNED_SHORT, 0) '' Indexed vertices draw
+        else 
+        glDrawArrays(GL_TRIANGLES, 0, mesh.vertexCount)
+			EndIf
+    Next
 
     '' Unbind all binded texture maps
-    for (int i = 0 i < MAX_MATERIAL_MAPS i++)
-    {
+    for i As Long= 0 To MAX_MATERIAL_MAPS-1
         glActiveTexture(GL_TEXTURE0 + i)       '' Set shader active texture
-        if ((i == MAP_IRRADIANCE) orelse (i == MAP_PREFILTER) OrElse (i == MAP_CUBEMAP)) glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
-        else glBindTexture(GL_TEXTURE_2D, 0)   '' Unbind current active texture
-    }
+        if ((i = MAP_IRRADIANCE) orelse (i = MAP_PREFILTER) OrElse (i = MAP_CUBEMAP)) Then
+        	glBindTexture(GL_TEXTURE_CUBE_MAP, 0)
+        else 
+        glBindTexture(GL_TEXTURE_2D, 0)   '' Unbind current active texture
+    		EndIf
+    Next
 
     '' Unind vertex array objects (or VBOs)
-    if (RLGL.ExtSupported.vao) glBindVertexArray(0)
-    else
-    {
+    if (RLGL.ExtSupported.vao) Then 
+    	glBindVertexArray(0)
+    Else
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-        if (mesh.indices != NULL) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-    }
+        if (mesh.indices <> NULL) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+    EndIf
 
     '' Unbind shader program
     glUseProgram(0)
@@ -3012,14 +3014,14 @@ Sub rlDrawMeshInstanced(mesh as Mesh, material as Material, transform as Matrix 
     glUseProgram(material.shader.id)
 
     '' Upload to shader material.colDiffuse
-    if (material.shader.locs[LOC_COLOR_DIFFUSE] != -1)
+    if (material.shader.locs[LOC_COLOR_DIFFUSE] <> -1)
         glUniform4f(material.shader.locs[LOC_COLOR_DIFFUSE], (Single)material.maps[MAP_DIFFUSE].color.r/255.0f,
                                                            (Single)material.maps[MAP_DIFFUSE].color.g/255.0f,
                                                            (Single)material.maps[MAP_DIFFUSE].color.b/255.0f,
                                                            (Single)material.maps[MAP_DIFFUSE].color.a/255.0f)
 
     '' Upload to shader material.colSpecular (if available)
-    if (material.shader.locs[LOC_COLOR_SPECULAR] != -1)
+    if (material.shader.locs[LOC_COLOR_SPECULAR] <> -1)
         glUniform4f(material.shader.locs[LOC_COLOR_SPECULAR], (Single)material.maps[MAP_SPECULAR].color.r/255.0f,
                                                                (Single)material.maps[MAP_SPECULAR].color.g/255.0f,
                                                                (Single)material.maps[MAP_SPECULAR].color.b/255.0f,
@@ -3074,7 +3076,7 @@ Sub rlDrawMeshInstanced(mesh as Mesh, material as Material, transform as Matrix 
     glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     '' Draw call!
-    if (mesh.indices != NULL) glDrawElementsInstanced(GL_TRIANGLES, mesh.triangleCount*3, GL_UNSIGNED_SHORT, 0, count)
+    if (mesh.indices <> NULL) glDrawElementsInstanced(GL_TRIANGLES, mesh.triangleCount*3, GL_UNSIGNED_SHORT, 0, count)
     else glDrawArraysInstanced(GL_TRIANGLES, 0, mesh.vertexCount, count)
 
     glDeleteBuffers(1, &instancesB)
@@ -3181,7 +3183,7 @@ Sub *rlReadTexturePixels(texture as Texture2D)
     rlGetGlTextureFormats(texture.format, &glInternalFormat, &glFormat, &glType)
     unsigned size as Long = GetPixelDataSize(texture.width, texture.height, texture.format)
 
-    if ((glInternalFormat != -1) && (texture.format < COMPRESSED_DXT1_RGB))
+    if ((glInternalFormat <> -1) && (texture.format < COMPRESSED_DXT1_RGB))
     {
         pixels = RL_MALLOC(size)
         glGetTexImage(GL_TEXTURE_2D, 0, glFormat, glType, pixels)
@@ -3294,13 +3296,13 @@ Shader LoadShader(const char *vsFileName, const char *fsFileName)
     char *vShaderStr = NULL
     char *fShaderStr = NULL
 
-    if (vsFileName != NULL) vShaderStr = LoadFileText(vsFileName)
-    if (fsFileName != NULL) fShaderStr = LoadFileText(fsFileName)
+    if (vsFileName <> NULL) vShaderStr = LoadFileText(vsFileName)
+    if (fsFileName <> NULL) fShaderStr = LoadFileText(fsFileName)
 
     shader = LoadShaderCode(vShaderStr, fShaderStr)
 
-    if (vShaderStr != NULL) RL_FREE(vShaderStr)
-    if (fShaderStr != NULL) RL_FREE(fShaderStr)
+    if (vShaderStr <> NULL) RL_FREE(vShaderStr)
+    if (fShaderStr <> NULL) RL_FREE(fShaderStr)
 
     return shader
 }
@@ -3319,21 +3321,21 @@ Shader LoadShaderCode(const char *vsCode, const char *fsCode)
     unsigned int vertexShaderId = RLGL.State.defaultVShaderId
     unsigned int fragmentShaderId = RLGL.State.defaultFShaderId
 
-    if (vsCode != NULL) vertexShaderId = CompileShader(vsCode, GL_VERTEX_SHADER)
-    if (fsCode != NULL) fragmentShaderId = CompileShader(fsCode, GL_FRAGMENT_SHADER)
+    if (vsCode <> NULL) vertexShaderId = CompileShader(vsCode, GL_VERTEX_SHADER)
+    if (fsCode <> NULL) fragmentShaderId = CompileShader(fsCode, GL_FRAGMENT_SHADER)
 
     if ((vertexShaderId == RLGL.State.defaultVShaderId) && (fragmentShaderId == RLGL.State.defaultFShaderId)) shader = RLGL.State.defaultShader
     else
     {
         shader.id = LoadShaderProgram(vertexShaderId, fragmentShaderId)
 
-        if (vertexShaderId != RLGL.State.defaultVShaderId)
+        if (vertexShaderId <> RLGL.State.defaultVShaderId)
         {
             '' Detach shader before deletion to make sure memory is freed
             glDetachShader(shader.id, vertexShaderId)
             glDeleteShader(vertexShaderId)
         }
-        if (fragmentShaderId != RLGL.State.defaultFShaderId)
+        if (fragmentShaderId <> RLGL.State.defaultFShaderId)
         {
             '' Detach shader before deletion to make sure memory is freed
             glDetachShader(shader.id, fragmentShaderId)
@@ -3379,7 +3381,7 @@ Shader LoadShaderCode(const char *vsCode, const char *fsCode)
 Sub UnloadShader(Shader shader)
 {
 #if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
-    if (shader.id != RLGL.State.defaultShader.id)
+    if (shader.id <> RLGL.State.defaultShader.id)
     {
         glDeleteProgram(shader.id)
         RL_FREE(shader.locs)
@@ -3393,7 +3395,7 @@ Sub UnloadShader(Shader shader)
 Sub BeginShaderMode(Shader shader)
 {
 #if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
-    if (RLGL.State.currentShader.id != shader.id)
+    if (RLGL.State.currentShader.id <> shader.id)
     {
         DrawRenderBatch(RLGL.currentBatch)
         RLGL.State.currentShader = shader
@@ -3865,7 +3867,7 @@ Texture2D GenTextureBRDF(Shader shader, size as Long)
 Sub BeginBlendMode(mode As long)
 {
 #if defined(GRAPHICS_API_OPENGL_33) OrElse defined(GRAPHICS_API_OPENGL_ES2)
-    if (RLGL.State.currentBlendMode != mode)
+    if (RLGL.State.currentBlendMode <> mode)
     {
         DrawRenderBatch(RLGL.currentBatch)
 
@@ -3955,7 +3957,7 @@ Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
     Single rightScreenCenter[2] = { 0.75f, 0.5f }
 
     '' Compute distortion scale parameters
-    '' NOTE: To get lens max radius, lensShift must be normalized to [-1..1]
+    '' NOTE: To get lens max radius, lensShift must be normalized to (-1..1]
     Single lensRadius = fabsf(-1.0f - 4.0f*lensShift)
     Single lensRadiusSq = lensRadius*lensRadius
     Single distortionScale = hmd.lensDistortionValues[0] +
@@ -3982,7 +3984,7 @@ Sub SetVrConfiguration(VrDeviceInfo hmd, Shader distortion)
     single fovy = 2.0f*(Single)atan2f(hmd.vScreenSize*0.5f, hmd.eyeToScreenDistance)
 
     '' Compute camera projection matrices
-    Single projOffset = 4.0f*lensShift      '' Scaled to projection space coordinates [-1..1]
+    Single projOffset = 4.0f*lensShift      '' Scaled to projection space coordinates (-1..1]
     Matrix proj = MatrixPerspective(fovy, aspect, RL_CULL_DISTANCE_NEAR, RL_CULL_DISTANCE_FAR)
     RLGL.Vr.config.eyesProjection[0] = MatrixMultiply(proj, MatrixTranslate(projOffset, 0.0f, 0.0f))
     RLGL.Vr.config.eyesProjection[1] = MatrixMultiply(proj, MatrixTranslate(-projOffset, 0.0f, 0.0f))
@@ -4150,7 +4152,7 @@ static unsigned int CompileShader(const char *shaderStr, int type)
     glCompileShader(shader)
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success)
 
-    if (success != GL_TRUE)
+    if (success <> GL_TRUE)
     {
         TRACELOG(LOG_WARNING, "SHADER: [ID %i] Failed to compile shader code", shader)
         int maxLength = 0
@@ -4740,7 +4742,7 @@ static sub GenDrawQuad()
     unsigned int quadVAO = 0
     unsigned int quadVBO = 0
 
-    Single vertices[] = {
+    Dim As Single vertices() = {
          '' Positions         Texcoords
         -1.0f,  1.0f, 0.0f,   0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f,   0.0f, 0.0f,
@@ -4779,7 +4781,7 @@ static sub GenDrawCube()
     unsigned int cubeVAO = 0
     unsigned int cubeVBO = 0
 
-    Single vertices[] = {
+    Dim As Single vertices(...) = {
          '' Positions          Normals               Texcoords
         -1.0f, -1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   0.0f, 0.0f,
          1.0f,  1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   1.0f, 1.0f,
@@ -4883,7 +4885,7 @@ static int GenerateMipmaps(unsigned char *data, int baseWidth, int baseHeight)
     size as Long = baseWidth*baseHeight*4  '' Size in bytes (will include mipmaps...), RGBA only
 
     '' Count mipmap levels required
-    while ((width != 1) && (height != 1))
+    while ((width <> 1) && (height <> 1))
     {
         width /= 2
         height /= 2
@@ -4900,7 +4902,7 @@ static int GenerateMipmaps(unsigned char *data, int baseWidth, int baseHeight)
 
     unsigned char *temp = RL_REALLOC(data, size)
 
-    if (temp != NULL) data = temp
+    if (temp <> NULL) data = temp
     else TRACELOG(LOG_WARNING, "TEXTURE: Failed to allocate required mipmaps memory")
 
     width = baseWidth
@@ -5007,11 +5009,11 @@ char *LoadFileText(const char *fileName)
 {
     char *text = NULL
 
-    if (fileName != NULL)
+    if (fileName <> NULL)
     {
         FILE *textFile = fopen(fileName, "rt")
 
-        if (textFile != NULL)
+        if (textFile <> NULL)
         {
             '' WARNING: When reading a file as 'text' file,
             '' text mode causes carriage return-linefeed translation...
@@ -5032,13 +5034,13 @@ char *LoadFileText(const char *fileName)
                 '' Zero-terminate the string
                 text[count] = '\0'
 
-                TRACELOG(LOG_INFO, "FILEIO: [%s] Text file loaded successfully", fileName)
+                TRACELOG(LOG_INFO, "FILEIO: (%s] Text file loaded successfully", fileName)
             }
-            else TRACELOG(LOG_WARNING, "FILEIO: [%s] Failed to read text file", fileName)
+            else TRACELOG(LOG_WARNING, "FILEIO: (%s] Failed to read text file", fileName)
 
             fclose(textFile)
         }
-        else TRACELOG(LOG_WARNING, "FILEIO: [%s] Failed to open text file", fileName)
+        else TRACELOG(LOG_WARNING, "FILEIO: (%s] Failed to open text file", fileName)
     }
     else TRACELOG(LOG_WARNING, "FILEIO: File name provided is not valid")
 
